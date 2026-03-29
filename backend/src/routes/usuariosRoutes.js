@@ -1,11 +1,21 @@
 import { Router } from "express";
+import { authMiddleware } from "../middlewares/authMiddleware.js";
+import { roleMiddleware } from "../middlewares/roleMiddleware.js";
+import {
+  criarUsuario,
+  listarUsuarios,
+  atualizarUsuario,
+  atualizarStatusUsuario,
+} from "../controllers/usuariosController.js";
 
 const router = Router();
 
-router.get("/", (req, res) => {
-  return res.status(501).json({
-    mensagem: "Rotas de usuários ainda serão implementadas.",
-  });
-});
+router.use(authMiddleware);
+router.use(roleMiddleware("admin"));
+
+router.post("/", criarUsuario);
+router.get("/", listarUsuarios);
+router.put("/:id", atualizarUsuario);
+router.patch("/:id/status", atualizarStatusUsuario);
 
 export default router;
