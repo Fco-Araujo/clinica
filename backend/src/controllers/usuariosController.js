@@ -1,6 +1,7 @@
 import {
   criarUsuarioService,
   listarUsuariosService,
+  buscarUsuarioPorIdService,
   atualizarUsuarioService,
   atualizarStatusUsuarioService,
 } from "../services/usuariosService.js";
@@ -30,6 +31,18 @@ export async function listarUsuarios(req, res, next) {
   }
 }
 
+export async function buscarUsuarioPorId(req, res, next) {
+  try {
+    const usuario = await buscarUsuarioPorIdService(req.params.id);
+
+    return res.status(200).json({
+      usuario,
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
+
 export async function atualizarUsuario(req, res, next) {
   try {
     const usuario = await atualizarUsuarioService(req.params.id, req.body);
@@ -45,7 +58,11 @@ export async function atualizarUsuario(req, res, next) {
 
 export async function atualizarStatusUsuario(req, res, next) {
   try {
-    const usuario = await atualizarStatusUsuarioService(req.params.id, req.body.ativo);
+    const usuario = await atualizarStatusUsuarioService(
+      req.params.id,
+      req.body.ativo,
+      req.usuario
+    );
 
     return res.status(200).json({
       mensagem: "Status do usuário atualizado com sucesso.",

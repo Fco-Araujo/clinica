@@ -14,7 +14,7 @@ async function verificarPacienteExiste(pacienteId) {
   return !!data;
 }
 
-async function buscarConsultaPorId(id) {
+async function buscarConsultaInternaPorId(id) {
   const { data, error } = await supabaseAdmin
     .from("consultas")
     .select(`
@@ -43,6 +43,14 @@ async function buscarConsultaPorId(id) {
   return data;
 }
 
+function validarData(data) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(data);
+}
+
+function validarHora(hora) {
+  return /^\d{2}:\d{2}(:\d{2})?$/.test(hora);
+}
+
 export async function criarConsultaService(payload, usuario) {
   if (!supabaseAdmin) {
     throw new Error("Supabase não configurado.");
@@ -62,6 +70,18 @@ export async function criarConsultaService(payload, usuario) {
 
   if (!data_consulta) {
     const err = new Error("Data da consulta é obrigatória.");
+    err.statusCode = 400;
+    throw err;
+  }
+
+  if (!validarData(data_consulta)) {
+    const err = new Error("Data inválida. Use o formato YYYY-MM-DD.");
+    err.statusCode = 400;
+    throw err;
+  }
+
+  if (hora_consulta && !validarHora(hora_consulta)) {
+    const err = new Error("Hora inválida. Use o formato HH:mm ou HH:mm:ss.");
     err.statusCode = 400;
     throw err;
   }
@@ -113,7 +133,7 @@ export async function criarConsultaService(payload, usuario) {
   return data;
 }
 
-export async function listarConsultasService(filtros) {
+export async function listarConsultasService(filtros = {}) {
   if (!supabaseAdmin) {
     throw new Error("Supabase não configurado.");
   }
@@ -153,6 +173,43 @@ export async function listarConsultasService(filtros) {
 
   if (error) {
     throw new Error("Erro ao listar consultas.");
+  }
+
+  return data;
+}
+
+export async function buscarConsultaPorIdService(id) {
+  if (!supabaseAdmin) {
+    throw new Error("Supabase não configurado.");
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from("consultas")
+    .select(`
+      id,
+      data_consulta,
+      hora_consulta,
+      status_pagamento,
+      observacoes,
+      criado_em,
+      paciente:pacientes (
+        id,
+        nome,
+        cpf,
+        telefone
+      )
+    `)
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error("Erro ao buscar consulta.");
+  }
+
+  if (!data) {
+    const err = new Error("Consulta não encontrada.");
+    err.statusCode = 404;
+    throw err;
   }
 
   return data;
@@ -213,7 +270,7 @@ export async function atualizarConsultaService(id, payload) {
     throw new Error("Supabase não configurado.");
   }
 
-  const consultaAtual = await buscarConsultaPorId(id);
+  const consultaAtual = await buscarConsultaInternaPorId(id);
 
   const data_consulta = payload.data_consulta || consultaAtual.data_consulta;
   const hora_consulta =
@@ -224,6 +281,18 @@ export async function atualizarConsultaService(id, payload) {
     payload.observacoes !== undefined
       ? payload.observacoes?.trim() || null
       : consultaAtual.observacoes;
+
+  if (!validarData(data_consulta)) {
+    const err = new Error("Data inválida. Use o formato YYYY-MM-DD.");
+    err.statusCode = 400;
+    throw err;
+  }
+
+  if (hora_consulta && !validarHora(hora_consulta)) {
+    const err = new Error("Hora inválida. Use o formato HH:mm ou HH:mm:ss.");
+    err.statusCode = 400;
+    throw err;
+  }
 
   const { data, error } = await supabaseAdmin
     .from("consultas")
@@ -273,7 +342,7 @@ export async function atualizarPagamentoService(id, status_pagamento) {
     throw err;
   }
 
-  await buscarConsultaPorId(id);
+  await buscarConsultaInternaPorId(id);
 
   const { data, error } = await supabaseAdmin
     .from("consultas")
@@ -307,11 +376,15 @@ export async function deletarConsultaService(id) {
     throw new Error("Supabase não configurado.");
   }
 
-  const { data: existente } = await supabaseAdmin
+  const { data: existente, error: erroBusca } = await supabaseAdmin
     .from("consultas")
     .select("id")
     .eq("id", id)
     .maybeSingle();
+
+  if (erroBusca) {
+    throw new Error("Erro ao buscar consulta para remoção.");
+  }
 
   if (!existente) {
     const err = new Error("Consulta não encontrada.");

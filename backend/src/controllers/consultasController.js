@@ -1,6 +1,7 @@
 import {
   criarConsultaService,
   listarConsultasService,
+  buscarConsultaPorIdService,
   resumoCalendarioService,
   atualizarConsultaService,
   atualizarPagamentoService,
@@ -32,6 +33,18 @@ export async function listarConsultas(req, res, next) {
 
     return res.status(200).json({
       consultas,
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function buscarConsultaPorId(req, res, next) {
+  try {
+    const consulta = await buscarConsultaPorIdService(req.params.id);
+
+    return res.status(200).json({
+      consulta,
     });
   } catch (error) {
     return next(error);
@@ -80,6 +93,7 @@ export async function atualizarPagamento(req, res, next) {
     return next(error);
   }
 }
+
 export async function deletarConsulta(req, res, next) {
   try {
     await deletarConsultaService(req.params.id);

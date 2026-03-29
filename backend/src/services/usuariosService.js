@@ -167,7 +167,7 @@ export async function atualizarUsuarioService(id, payload) {
   return data;
 }
 
-export async function atualizarStatusUsuarioService(id, ativo) {
+export async function atualizarStatusUsuarioService(id, ativo, usuarioLogado) {
   if (!supabaseAdmin) {
     throw new Error("Supabase não configurado.");
   }
@@ -178,7 +178,14 @@ export async function atualizarStatusUsuarioService(id, ativo) {
     throw err;
   }
 
-  await buscarUsuarioPorId(id);
+  // ❌ impedir admin de se desativar
+  if (usuarioLogado.id === id && ativo === false) {
+    const err = new Error("Você não pode desativar seu próprio usuário.");
+    err.statusCode = 400;
+    throw err;
+  }
+
+  const usuario = await buscarUsuarioPorId(id);
 
   const { data, error } = await supabaseAdmin
     .from("usuarios")
@@ -189,6 +196,58 @@ export async function atualizarStatusUsuarioService(id, ativo) {
 
   if (error) {
     throw new Error("Erro ao atualizar status do usuário.");
+  }
+
+  return data;
+}
+
+export async function buscarUsuarioPorIdService(id) {
+  const { data, error } = await supabaseAdmin
+    .from("usuarios")
+    .select("id, nome, email, perfil, ativo, criado_em")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error("Erro ao buscar usuário.");
+  }
+
+  if (!data) {
+    const err = new Error("Usuário não encontrado.");
+    err.statusCode = 404;
+    throw err;
+  }
+
+  return data;
+}
+export async function buscarConsultaPorIdService(id) {
+  const { data, error } = await supabaseAdmin
+    .from("consultas")
+    .select(`
+      id,
+      data_consulta,
+      hora_consulta,
+      status_pagamento,
+      observacoes,
+      criado_em,
+      paciente:pacientes (
+        id,
+        nome,
+        cpf,
+        telefone
+      )
+    `)
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error("Erro ao buscar consulta.");
+  }
+
+  if (!data) {
+    const err = new Error("Consulta não encontrada.");
+    err.statusCode = 404;
+    throw err;
   }
 
   return data;
