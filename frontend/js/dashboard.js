@@ -33,6 +33,9 @@ const statPendentes = document.getElementById("statPendentes");
 
 const kpiHoje = document.getElementById("kpiHoje");
 const kpiDiasMes = document.getElementById("kpiDiasMes");
+const kpiSus = document.getElementById("kpiSus");
+const kpiMaster = document.getElementById("kpiMaster");
+const kpiParticular = document.getElementById("kpiParticular");
 const kpiPagasMes = document.getElementById("kpiPagasMes");
 const kpiPendentesMes = document.getElementById("kpiPendentesMes");
 
@@ -40,14 +43,13 @@ const tbodyProximasConsultas = document.getElementById("tbodyProximasConsultas")
 const listaPacientesRecentes = document.getElementById("listaPacientesRecentes");
 const searchTopbar = document.getElementById("searchTopbar");
 
-const statMesNome = null;
-
 let pacientes = [];
 let consultas = [];
 let resumoMes = [];
 
 let chartPagamento = null;
 let chartMensal = null;
+let chartTipoAtendimento = null;
 
 function getAuthHeaders() {
   return {
@@ -72,6 +74,14 @@ function formatarDataBR(data) {
   return dataObj.toLocaleDateString("pt-BR");
 }
 
+function getTipoBadgeClass(tipo) {
+  const normalizado = String(tipo || "").toUpperCase();
+
+  if (normalizado === "SUS") return "sus";
+  if (normalizado === "MASTER") return "master";
+  return "particular";
+}
+
 function normalizarResumoItem(item) {
   const data =
     item.data ||
@@ -89,7 +99,16 @@ function normalizarResumoItem(item) {
   const pendentes =
     Number(item.pendentes ?? item.total_pendentes ?? item.pendente ?? 0) || 0;
 
-  return { data, total, pagas, pendentes };
+  const sus =
+    Number(item.sus ?? item.total_sus ?? 0) || 0;
+
+  const master =
+    Number(item.master ?? item.total_master ?? 0) || 0;
+
+  const particular =
+    Number(item.particular ?? item.total_particular ?? 0) || 0;
+
+  return { data, total, pagas, pendentes, sus, master, particular };
 }
 
 function normalizarConsulta(consulta) {
@@ -110,6 +129,7 @@ function normalizarConsulta(consulta) {
     dataConsulta: consulta.data_consulta || "",
     horaConsulta: consulta.hora_consulta || "-",
     statusPagamento: consulta.status_pagamento || "pendente",
+    tipoAtendimento: consulta.tipo_atendimento || "PARTICULAR",
     observacoes: consulta.observacoes || "",
   };
 }
@@ -186,8 +206,18 @@ async function carregarResumoMes() {
 function atualizarCards() {
   const totalPacientes = pacientes.length;
   const totalConsultas = consultas.length;
-  const pagas = consultas.filter((item) => item.statusPagamento === "pago").length;
-  const pendentes = consultas.filter((item) => item.statusPagamento === "pendente").length;
+  const pagas = consultas.filter(
+    (item) => item.tipoAtendimento !== "SUS" && item.statusPagamento === "pago"
+  ).length;
+  const pendentes = consultas.filter(
+    (item) => item.tipoAtendimento !== "SUS" && item.statusPagamento === "pendente"
+  ).length;
+
+  const sus = consultas.filter((item) => item.tipoAtendimento === "SUS").length;
+  const master = consultas.filter((item) => item.tipoAtendimento === "MASTER").length;
+  const particular = consultas.filter(
+    (item) => item.tipoAtendimento === "PARTICULAR"
+  ).length;
 
   const hojeIso = new Date().toISOString().slice(0, 10);
   const consultasHoje = consultas.filter((item) => item.dataConsulta === hojeIso).length;
@@ -203,6 +233,9 @@ function atualizarCards() {
 
   kpiHoje.textContent = consultasHoje;
   kpiDiasMes.textContent = diasComConsulta;
+  kpiSus.textContent = sus;
+  kpiMaster.textContent = master;
+  kpiParticular.textContent = particular;
   kpiPagasMes.textContent = pagasMes;
   kpiPendentesMes.textContent = pendentesMes;
 }
@@ -214,8 +247,13 @@ function renderizarChartPagamento() {
     chartPagamento.destroy();
   }
 
-  const pagas = consultas.filter((item) => item.statusPagamento === "pago").length;
-  const pendentes = consultas.filter((item) => item.statusPagamento === "pendente").length;
+  const pagas = consultas.filter(
+    (item) => item.tipoAtendimento !== "SUS" && item.statusPagamento === "pago"
+  ).length;
+
+  const pendentes = consultas.filter(
+    (item) => item.tipoAtendimento !== "SUS" && item.statusPagamento === "pendente"
+  ).length;
 
   chartPagamento = new Chart(ctx, {
     type: "doughnut",
@@ -240,6 +278,42 @@ function renderizarChartPagamento() {
   });
 }
 
+function renderizarChartTipoAtendimento() {
+  const ctx = document.getElementById("chartTipoAtendimento");
+
+  if (chartTipoAtendimento) {
+    chartTipoAtendimento.destroy();
+  }
+
+  const sus = consultas.filter((item) => item.tipoAtendimento === "SUS").length;
+  const master = consultas.filter((item) => item.tipoAtendimento === "MASTER").length;
+  const particular = consultas.filter(
+    (item) => item.tipoAtendimento === "PARTICULAR"
+  ).length;
+
+  chartTipoAtendimento = new Chart(ctx, {
+    type: "pie",
+    data: {
+      labels: ["SUS", "MASTER", "PARTICULAR"],
+      datasets: [
+        {
+          data: [sus, master, particular],
+          backgroundColor: ["#4f7cff", "#8b5cf6", "#ff8a17"],
+          borderWidth: 0,
+        },
+      ],
+    },
+    options: {
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: "bottom",
+        },
+      },
+    },
+  });
+}
+
 function renderizarChartMensal() {
   const ctx = document.getElementById("chartMensal");
 
@@ -249,8 +323,9 @@ function renderizarChartMensal() {
 
   const labels = resumoMes.map((item) => formatarDataBR(item.data));
   const total = resumoMes.map((item) => item.total);
-  const pagas = resumoMes.map((item) => item.pagas);
-  const pendentes = resumoMes.map((item) => item.pendentes);
+  const sus = resumoMes.map((item) => item.sus || 0);
+  const master = resumoMes.map((item) => item.master || 0);
+  const particular = resumoMes.map((item) => item.particular || 0);
 
   chartMensal = new Chart(ctx, {
     type: "bar",
@@ -264,15 +339,21 @@ function renderizarChartMensal() {
           borderRadius: 8,
         },
         {
-          label: "Pagas",
-          data: pagas,
-          backgroundColor: "#1fa971",
+          label: "SUS",
+          data: sus,
+          backgroundColor: "#4f7cff",
           borderRadius: 8,
         },
         {
-          label: "Pendentes",
-          data: pendentes,
-          backgroundColor: "#f59e0b",
+          label: "MASTER",
+          data: master,
+          backgroundColor: "#8b5cf6",
+          borderRadius: 8,
+        },
+        {
+          label: "PARTICULAR",
+          data: particular,
+          backgroundColor: "#ff8a17",
           borderRadius: 8,
         },
       ],
@@ -305,13 +386,16 @@ function obterConsultasFiltradasBusca() {
     return (
       item.pacienteNome.toLowerCase().includes(termo) ||
       item.cpf.toLowerCase().includes(termo) ||
-      item.telefone.toLowerCase().includes(termo)
+      item.telefone.toLowerCase().includes(termo) ||
+      item.tipoAtendimento.toLowerCase().includes(termo)
     );
   });
 }
 
 function renderizarProximasConsultas() {
-  const hoje = new Date();
+  const hojeBase = new Date();
+  hojeBase.setHours(0, 0, 0, 0);
+
   const filtradas = obterConsultasFiltradasBusca();
 
   const futuras = filtradas
@@ -323,14 +407,14 @@ function renderizarProximasConsultas() {
     })
     .filter((item) => {
       const data = new Date(`${item.dataConsulta}T${item.horaConsulta === "-" ? "00:00" : item.horaConsulta}`);
-      return data >= new Date(hoje.setHours(0, 0, 0, 0));
+      return data >= hojeBase;
     })
     .slice(0, 8);
 
   if (!futuras.length) {
     tbodyProximasConsultas.innerHTML = `
       <tr>
-        <td colspan="4" class="empty-row">Nenhuma consulta encontrada.</td>
+        <td colspan="5" class="empty-row">Nenhuma consulta encontrada.</td>
       </tr>
     `;
     return;
@@ -338,15 +422,24 @@ function renderizarProximasConsultas() {
 
   tbodyProximasConsultas.innerHTML = futuras
     .map((item) => {
-      const statusClass = item.statusPagamento === "pago" ? "pago" : "pendente";
-      const statusLabel = item.statusPagamento === "pago" ? "Pago" : "Pendente";
+      const tipoClass = getTipoBadgeClass(item.tipoAtendimento);
+
+      let pagamentoHtml = `<span>-</span>`;
+      if (item.tipoAtendimento !== "SUS") {
+        pagamentoHtml = `
+          <span class="badge-status ${item.statusPagamento === "pago" ? "pago" : "pendente"}">
+            ${item.statusPagamento === "pago" ? "Pago" : "Pendente"}
+          </span>
+        `;
+      }
 
       return `
         <tr>
           <td>${item.pacienteNome}</td>
           <td>${formatarDataBR(item.dataConsulta)}</td>
           <td>${item.horaConsulta}</td>
-          <td><span class="badge-status ${statusClass}">${statusLabel}</span></td>
+          <td><span class="badge-status ${tipoClass}">${item.tipoAtendimento}</span></td>
+          <td>${pagamentoHtml}</td>
         </tr>
       `;
     })
@@ -354,9 +447,10 @@ function renderizarProximasConsultas() {
 }
 
 function renderizarPacientesRecentes() {
-  const filtradas = searchTopbar.value.trim()
+  const termo = searchTopbar.value.trim().toLowerCase();
+
+  const filtradas = termo
     ? pacientes.filter((item) => {
-        const termo = searchTopbar.value.trim().toLowerCase();
         return (
           (item.nome || "").toLowerCase().includes(termo) ||
           (item.cpf || "").toLowerCase().includes(termo) ||
@@ -390,6 +484,7 @@ function renderizarPacientesRecentes() {
 function renderizarDashboard() {
   atualizarCards();
   renderizarChartPagamento();
+  renderizarChartTipoAtendimento();
   renderizarChartMensal();
   renderizarProximasConsultas();
   renderizarPacientesRecentes();
@@ -412,7 +507,7 @@ async function carregarTudo() {
 
     tbodyProximasConsultas.innerHTML = `
       <tr>
-        <td colspan="4" class="empty-row">Erro ao carregar dashboard.</td>
+        <td colspan="5" class="empty-row">Erro ao carregar dashboard.</td>
       </tr>
     `;
 

@@ -14,9 +14,9 @@
   <div class="app-layout">
     <aside class="sidebar">
       <div class="sidebar-top">
-        <div class="brand">
+        <!-- <div class="brand">
           <img src="../assets/logo-massofisio.png" alt="Logo MassoFisio" class="brand-logo" />
-        </div>
+        </div> -->
       </div>
 
       <nav class="sidebar-nav">
@@ -75,7 +75,7 @@
       <main class="content">
         <section class="page-header">
           <h1>Calendário</h1>
-          <p>Visualize os agendamentos por dia e acompanhe os pagamentos.</p>
+          <p>Visualize os agendamentos por dia e acompanhe os tipos de atendimento.</p>
         </section>
 
         <section class="stats-grid">
@@ -97,6 +97,21 @@
           <article class="stat-card">
             <span class="stat-label">Consultas pendentes no mês</span>
             <strong class="stat-value warning" id="statPendentesMes">0</strong>
+          </article>
+
+          <article class="stat-card">
+            <span class="stat-label">SUS no mês</span>
+            <strong class="stat-value sus" id="statSusMes">0</strong>
+          </article>
+
+          <article class="stat-card">
+            <span class="stat-label">MASTER no mês</span>
+            <strong class="stat-value master" id="statMasterMes">0</strong>
+          </article>
+
+          <article class="stat-card">
+            <span class="stat-label">PARTICULAR no mês</span>
+            <strong class="stat-value particular" id="statParticularMes">0</strong>
           </article>
         </section>
 
@@ -156,6 +171,21 @@
               <div class="summary-item">
                 <span>Pendentes</span>
                 <strong id="detalhePendentes" class="warning">0</strong>
+              </div>
+
+              <div class="summary-item">
+                <span>SUS</span>
+                <strong id="detalheSus" class="sus">0</strong>
+              </div>
+
+              <div class="summary-item">
+                <span>MASTER</span>
+                <strong id="detalheMaster" class="master">0</strong>
+              </div>
+
+              <div class="summary-item">
+                <span>PARTICULAR</span>
+                <strong id="detalheParticular" class="particular">0</strong>
               </div>
             </div>
 

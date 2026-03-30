@@ -22,6 +22,9 @@
   --success: #1fa971;
   --warning: #f59e0b;
   --danger: #dc3d3d;
+  --sus: #4f7cff;
+  --master: #8b5cf6;
+  --particular: #ff8a17;
   --sidebar-width: 250px;
   --topbar-height: 110px;
   --font: "Segoe UI", Arial, sans-serif;
@@ -225,7 +228,7 @@ input {
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 18px;
   margin-bottom: 20px;
 }
@@ -261,6 +264,18 @@ input {
 
 .stat-value.primary {
   color: var(--primary);
+}
+
+.stat-value.sus {
+  color: var(--sus);
+}
+
+.stat-value.master {
+  color: var(--master);
+}
+
+.stat-value.particular {
+  color: var(--particular);
 }
 
 .calendar-toolbar {
@@ -334,7 +349,7 @@ input {
 }
 
 .calendar-day {
-  min-height: 118px;
+  min-height: 140px;
   background: #fbfbfd;
   border: 1px solid #e9edf5;
   border-radius: 18px;
@@ -384,7 +399,7 @@ input {
   width: fit-content;
   padding: 6px 10px;
   border-radius: 999px;
-  font-size: 0.8rem;
+  font-size: 0.76rem;
   font-weight: 700;
   color: #fff;
 }
@@ -399,6 +414,18 @@ input {
 
 .day-badge.pendente {
   background: var(--warning);
+}
+
+.day-badge.sus {
+  background: var(--sus);
+}
+
+.day-badge.master {
+  background: var(--master);
+}
+
+.day-badge.particular {
+  background: var(--particular);
 }
 
 .details-header {
@@ -449,6 +476,18 @@ input {
 
 .summary-item .warning {
   color: var(--warning);
+}
+
+.summary-item .sus {
+  color: var(--sus);
+}
+
+.summary-item .master {
+  color: var(--master);
+}
+
+.summary-item .particular {
+  color: var(--particular);
 }
 
 .details-search {
@@ -514,6 +553,13 @@ input {
   font-size: 0.92rem;
 }
 
+.day-card-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
 .day-card-status {
   display: inline-flex;
   width: fit-content;
@@ -530,6 +576,18 @@ input {
 
 .day-card-status.pendente {
   background: var(--warning);
+}
+
+.day-card-status.sus {
+  background: var(--sus);
+}
+
+.day-card-status.master {
+  background: var(--master);
+}
+
+.day-card-status.particular {
+  background: var(--particular);
 }
 
 .empty-day {
@@ -552,6 +610,12 @@ input {
 
 .btn-secondary:hover {
   background: #e3e8f3;
+}
+
+@media (max-width: 1450px) {
+  .stats-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 1250px) {
@@ -608,7 +672,7 @@ input {
   }
 
   .calendar-day {
-    min-height: 95px;
+    min-height: 105px;
     padding: 10px;
   }
 }
@@ -645,7 +709,7 @@ input {
   }
 
   .calendar-day {
-    min-height: 88px;
+    min-height: 92px;
     border-radius: 14px;
   }
 
@@ -654,8 +718,8 @@ input {
   }
 
   .day-badge {
-    font-size: 0.72rem;
-    padding: 5px 8px;
+    font-size: 0.7rem;
+    padding: 4px 7px;
   }
 
   .details-summary {

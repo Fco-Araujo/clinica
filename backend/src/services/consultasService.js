@@ -1,54 +1,44 @@
 import { supabaseAdmin } from "../config/supabase.js";
 
-async function verificarPacienteExiste(pacienteId) {
-  const { data, error } = await supabaseAdmin
-    .from("pacientes")
-    .select("id")
-    .eq("id", pacienteId)
-    .maybeSingle();
+function validarTipoAtendimento(tipo) {
+  const tiposValidos = ["PARTICULAR", "MASTER", "SUS"];
 
-  if (error) {
-    throw new Error("Erro ao verificar paciente.");
-  }
+  if (!tipo) return "PARTICULAR";
 
-  return !!data;
-}
+  const tipoFormatado = String(tipo).trim().toUpperCase();
 
-async function buscarConsultaInternaPorId(id) {
-  const { data, error } = await supabaseAdmin
-    .from("consultas")
-    .select(`
-      id,
-      paciente_id,
-      data_consulta,
-      hora_consulta,
-      status_pagamento,
-      observacoes,
-      criado_por,
-      criado_em
-    `)
-    .eq("id", id)
-    .maybeSingle();
-
-  if (error) {
-    throw new Error("Erro ao buscar consulta.");
-  }
-
-  if (!data) {
-    const err = new Error("Consulta não encontrada.");
-    err.statusCode = 404;
+  if (!tiposValidos.includes(tipoFormatado)) {
+    const err = new Error("Tipo de atendimento inválido.");
+    err.statusCode = 400;
     throw err;
   }
 
-  return data;
+  return tipoFormatado;
 }
 
-function validarData(data) {
-  return /^\d{4}-\d{2}-\d{2}$/.test(data);
+function validarStatusPagamento(status, tipoAtendimento) {
+  if (tipoAtendimento === "SUS") {
+    return "pendente";
+  }
+
+  const statusNormalizado = String(status || "pendente").trim().toLowerCase();
+
+  if (!["pago", "pendente"].includes(statusNormalizado)) {
+    const err = new Error("Status de pagamento inválido.");
+    err.statusCode = 400;
+    throw err;
+  }
+
+  return statusNormalizado;
 }
 
-function validarHora(hora) {
-  return /^\d{2}:\d{2}(:\d{2})?$/.test(hora);
+function normalizarHora(hora) {
+  if (!hora) return null;
+  return String(hora).trim();
+}
+
+function normalizarTexto(texto) {
+  return texto?.trim() || null;
 }
 
 export async function criarConsultaService(payload, usuario) {
@@ -58,9 +48,13 @@ export async function criarConsultaService(payload, usuario) {
 
   const paciente_id = payload.paciente_id;
   const data_consulta = payload.data_consulta;
-  const hora_consulta = payload.hora_consulta || null;
-  const status_pagamento = payload.status_pagamento || "pendente";
-  const observacoes = payload.observacoes?.trim() || null;
+  const hora_consulta = normalizarHora(payload.hora_consulta);
+  const tipo_atendimento = validarTipoAtendimento(payload.tipo_atendimento);
+  const status_pagamento = validarStatusPagamento(
+    payload.status_pagamento,
+    tipo_atendimento
+  );
+  const observacoes = normalizarTexto(payload.observacoes);
 
   if (!paciente_id) {
     const err = new Error("Paciente é obrigatório.");
@@ -74,25 +68,16 @@ export async function criarConsultaService(payload, usuario) {
     throw err;
   }
 
-  if (!validarData(data_consulta)) {
-    const err = new Error("Data inválida. Use o formato YYYY-MM-DD.");
-    err.statusCode = 400;
-    throw err;
-  }
+  const { data: pacienteExiste, error: erroPaciente } = await supabaseAdmin
+    .from("pacientes")
+    .select("id")
+    .eq("id", paciente_id)
+    .maybeSingle();
 
-  if (hora_consulta && !validarHora(hora_consulta)) {
-    const err = new Error("Hora inválida. Use o formato HH:mm ou HH:mm:ss.");
-    err.statusCode = 400;
-    throw err;
+  if (erroPaciente) {
+    console.error("ERRO AO VALIDAR PACIENTE:", erroPaciente);
+    throw new Error("Erro ao validar paciente.");
   }
-
-  if (!["pago", "pendente"].includes(status_pagamento)) {
-    const err = new Error("Status de pagamento inválido.");
-    err.statusCode = 400;
-    throw err;
-  }
-
-  const pacienteExiste = await verificarPacienteExiste(paciente_id);
 
   if (!pacienteExiste) {
     const err = new Error("Paciente não encontrado.");
@@ -100,34 +85,38 @@ export async function criarConsultaService(payload, usuario) {
     throw err;
   }
 
+  const payloadInsert = {
+    paciente_id,
+    data_consulta,
+    hora_consulta,
+    tipo_atendimento,
+    status_pagamento,
+    observacoes,
+    criado_por: usuario?.id || null,
+  };
+
+  console.log("PAYLOAD INSERT CONSULTA:", payloadInsert);
+
   const { data, error } = await supabaseAdmin
     .from("consultas")
-    .insert({
-      paciente_id,
-      data_consulta,
-      hora_consulta,
-      status_pagamento,
-      observacoes,
-      criado_por: usuario.id,
-    })
-    .select(`
-      id,
-      data_consulta,
-      hora_consulta,
-      status_pagamento,
-      observacoes,
-      criado_em,
+    .insert(payloadInsert)
+    .select(
+      `
+      *,
       paciente:pacientes (
         id,
         nome,
         cpf,
         telefone
       )
-    `)
+    `
+    )
     .single();
 
   if (error) {
-    throw new Error("Erro ao criar consulta.");
+    console.error("ERRO SUPABASE AO CRIAR CONSULTA:");
+    console.error(error);
+    throw new Error(`Erro ao criar consulta: ${error.message}`);
   }
 
   return data;
@@ -140,20 +129,17 @@ export async function listarConsultasService(filtros = {}) {
 
   let query = supabaseAdmin
     .from("consultas")
-    .select(`
-      id,
-      data_consulta,
-      hora_consulta,
-      status_pagamento,
-      observacoes,
-      criado_em,
+    .select(
+      `
+      *,
       paciente:pacientes (
         id,
         nome,
         cpf,
         telefone
       )
-    `)
+    `
+    )
     .order("data_consulta", { ascending: true })
     .order("hora_consulta", { ascending: true });
 
@@ -165,13 +151,24 @@ export async function listarConsultasService(filtros = {}) {
     query = query.eq("paciente_id", filtros.paciente_id);
   }
 
+  if (filtros.tipo_atendimento) {
+    query = query.eq(
+      "tipo_atendimento",
+      String(filtros.tipo_atendimento).trim().toUpperCase()
+    );
+  }
+
   if (filtros.status_pagamento) {
-    query = query.eq("status_pagamento", filtros.status_pagamento);
+    query = query.eq(
+      "status_pagamento",
+      String(filtros.status_pagamento).trim().toLowerCase()
+    );
   }
 
   const { data, error } = await query;
 
   if (error) {
+    console.error("Erro Supabase ao listar consultas:", error);
     throw new Error("Erro ao listar consultas.");
   }
 
@@ -185,24 +182,22 @@ export async function buscarConsultaPorIdService(id) {
 
   const { data, error } = await supabaseAdmin
     .from("consultas")
-    .select(`
-      id,
-      data_consulta,
-      hora_consulta,
-      status_pagamento,
-      observacoes,
-      criado_em,
+    .select(
+      `
+      *,
       paciente:pacientes (
         id,
         nome,
         cpf,
         telefone
       )
-    `)
+    `
+    )
     .eq("id", id)
     .maybeSingle();
 
   if (error) {
+    console.error("Erro Supabase ao buscar consulta:", error);
     throw new Error("Erro ao buscar consulta.");
   }
 
@@ -220,49 +215,60 @@ export async function resumoCalendarioService({ mes, ano }) {
     throw new Error("Supabase não configurado.");
   }
 
-  if (!mes || !ano) {
+  const mesNumero = Number(mes);
+  const anoNumero = Number(ano);
+
+  if (!mesNumero || !anoNumero) {
     const err = new Error("Mês e ano são obrigatórios.");
     err.statusCode = 400;
     throw err;
   }
 
-  const mesNumero = String(mes).padStart(2, "0");
-  const inicio = `${ano}-${mesNumero}-01`;
-  const fim = new Date(Number(ano), Number(mes), 0).toISOString().slice(0, 10);
+  const primeiroDia = `${anoNumero}-${String(mesNumero).padStart(2, "0")}-01`;
+  const ultimoDiaDate = new Date(anoNumero, mesNumero, 0);
+  const ultimoDia = `${anoNumero}-${String(mesNumero).padStart(2, "0")}-${String(
+    ultimoDiaDate.getDate()
+  ).padStart(2, "0")}`;
 
   const { data, error } = await supabaseAdmin
     .from("consultas")
-    .select("data_consulta, status_pagamento")
-    .gte("data_consulta", inicio)
-    .lte("data_consulta", fim)
+    .select("data_consulta, status_pagamento, tipo_atendimento")
+    .gte("data_consulta", primeiroDia)
+    .lte("data_consulta", ultimoDia)
     .order("data_consulta", { ascending: true });
 
   if (error) {
+    console.error("Erro Supabase ao gerar resumo calendário:", error);
     throw new Error("Erro ao gerar resumo do calendário.");
   }
 
-  const mapa = {};
+  const mapa = new Map();
 
   for (const item of data) {
-    if (!mapa[item.data_consulta]) {
-      mapa[item.data_consulta] = {
-        data: item.data_consulta,
+    const dataConsulta = item.data_consulta;
+
+    if (!mapa.has(dataConsulta)) {
+      mapa.set(dataConsulta, {
+        data: dataConsulta,
         total: 0,
         pagas: 0,
         pendentes: 0,
-      };
+      });
     }
 
-    mapa[item.data_consulta].total += 1;
+    const registro = mapa.get(dataConsulta);
+    registro.total += 1;
 
-    if (item.status_pagamento === "pago") {
-      mapa[item.data_consulta].pagas += 1;
-    } else {
-      mapa[item.data_consulta].pendentes += 1;
+    if (item.tipo_atendimento !== "SUS") {
+      if (item.status_pagamento === "pago") {
+        registro.pagas += 1;
+      } else if (item.status_pagamento === "pendente") {
+        registro.pendentes += 1;
+      }
     }
   }
 
-  return Object.values(mapa);
+  return Array.from(mapa.values());
 }
 
 export async function atualizarConsultaService(id, payload) {
@@ -270,101 +276,111 @@ export async function atualizarConsultaService(id, payload) {
     throw new Error("Supabase não configurado.");
   }
 
-  const consultaAtual = await buscarConsultaInternaPorId(id);
+  const consultaAtual = await buscarConsultaPorIdService(id);
 
   const data_consulta = payload.data_consulta || consultaAtual.data_consulta;
   const hora_consulta =
     payload.hora_consulta !== undefined
-      ? payload.hora_consulta || null
+      ? normalizarHora(payload.hora_consulta)
       : consultaAtual.hora_consulta;
+
+  const tipo_atendimento =
+    payload.tipo_atendimento !== undefined
+      ? validarTipoAtendimento(payload.tipo_atendimento)
+      : validarTipoAtendimento(consultaAtual.tipo_atendimento);
+
+  let status_pagamento;
+
+  if (payload.status_pagamento !== undefined) {
+    status_pagamento = validarStatusPagamento(
+      payload.status_pagamento,
+      tipo_atendimento
+    );
+  } else {
+    status_pagamento =
+      tipo_atendimento === "SUS"
+        ? "pendente"
+        : validarStatusPagamento(
+            consultaAtual.status_pagamento,
+            tipo_atendimento
+          );
+  }
+
   const observacoes =
     payload.observacoes !== undefined
-      ? payload.observacoes?.trim() || null
+      ? normalizarTexto(payload.observacoes)
       : consultaAtual.observacoes;
-
-  if (!validarData(data_consulta)) {
-    const err = new Error("Data inválida. Use o formato YYYY-MM-DD.");
-    err.statusCode = 400;
-    throw err;
-  }
-
-  if (hora_consulta && !validarHora(hora_consulta)) {
-    const err = new Error("Hora inválida. Use o formato HH:mm ou HH:mm:ss.");
-    err.statusCode = 400;
-    throw err;
-  }
 
   const { data, error } = await supabaseAdmin
     .from("consultas")
     .update({
       data_consulta,
       hora_consulta,
+      tipo_atendimento,
+      status_pagamento,
       observacoes,
     })
     .eq("id", id)
-    .select(`
-      id,
-      data_consulta,
-      hora_consulta,
-      status_pagamento,
-      observacoes,
-      criado_em,
+    .select(
+      `
+      *,
       paciente:pacientes (
         id,
         nome,
         cpf,
         telefone
       )
-    `)
+    `
+    )
     .single();
 
   if (error) {
+    console.error("Erro Supabase ao atualizar consulta:", error);
     throw new Error("Erro ao atualizar consulta.");
   }
 
   return data;
 }
 
-export async function atualizarPagamentoService(id, status_pagamento) {
+export async function atualizarPagamentoService(id, statusPagamento) {
   if (!supabaseAdmin) {
     throw new Error("Supabase não configurado.");
   }
 
-  if (!status_pagamento) {
-    const err = new Error("Status de pagamento é obrigatório.");
+  const consultaAtual = await buscarConsultaPorIdService(id);
+
+  if (consultaAtual.tipo_atendimento === "SUS") {
+    const err = new Error("Consultas SUS não possuem controle de pagamento.");
     err.statusCode = 400;
     throw err;
   }
 
-  if (!["pago", "pendente"].includes(status_pagamento)) {
-    const err = new Error("Status de pagamento inválido.");
-    err.statusCode = 400;
-    throw err;
-  }
-
-  await buscarConsultaInternaPorId(id);
+  const status_pagamento = validarStatusPagamento(
+    statusPagamento,
+    consultaAtual.tipo_atendimento
+  );
 
   const { data, error } = await supabaseAdmin
     .from("consultas")
-    .update({ status_pagamento })
-    .eq("id", id)
-    .select(`
-      id,
-      data_consulta,
-      hora_consulta,
+    .update({
       status_pagamento,
-      observacoes,
-      criado_em,
+    })
+    .eq("id", id)
+    .select(
+      `
+      *,
       paciente:pacientes (
         id,
         nome,
         cpf,
         telefone
       )
-    `)
+    `
+    )
     .single();
 
   if (error) {
+    console.error("Erro Supabase ao atualizar pagamento:", error);
     throw new Error("Erro ao atualizar pagamento.");
   }
 
@@ -376,21 +392,7 @@ export async function deletarConsultaService(id) {
     throw new Error("Supabase não configurado.");
   }
 
-  const { data: existente, error: erroBusca } = await supabaseAdmin
-    .from("consultas")
-    .select("id")
-    .eq("id", id)
-    .maybeSingle();
-
-  if (erroBusca) {
-    throw new Error("Erro ao buscar consulta para remoção.");
-  }
-
-  if (!existente) {
-    const err = new Error("Consulta não encontrada.");
-    err.statusCode = 404;
-    throw err;
-  }
+  await buscarConsultaPorIdService(id);
 
   const { error } = await supabaseAdmin
     .from("consultas")
@@ -398,6 +400,9 @@ export async function deletarConsultaService(id) {
     .eq("id", id);
 
   if (error) {
+    console.error("Erro Supabase ao deletar consulta:", error);
     throw new Error("Erro ao remover consulta.");
   }
+
+  return true;
 }

@@ -25,6 +25,9 @@ const statMesNome = document.getElementById("statMesNome");
 const statDiasComConsulta = document.getElementById("statDiasComConsulta");
 const statPagasMes = document.getElementById("statPagasMes");
 const statPendentesMes = document.getElementById("statPendentesMes");
+const statSusMes = document.getElementById("statSusMes");
+const statMasterMes = document.getElementById("statMasterMes");
+const statParticularMes = document.getElementById("statParticularMes");
 
 const btnMesAnterior = document.getElementById("btnMesAnterior");
 const btnMesProximo = document.getElementById("btnMesProximo");
@@ -39,6 +42,9 @@ const subtituloDiaSelecionado = document.getElementById("subtituloDiaSelecionado
 const detalheTotal = document.getElementById("detalheTotal");
 const detalhePagas = document.getElementById("detalhePagas");
 const detalhePendentes = document.getElementById("detalhePendentes");
+const detalheSus = document.getElementById("detalheSus");
+const detalheMaster = document.getElementById("detalheMaster");
+const detalheParticular = document.getElementById("detalheParticular");
 const listaConsultasDia = document.getElementById("listaConsultasDia");
 
 const searchTopbar = document.getElementById("searchTopbar");
@@ -105,7 +111,16 @@ function normalizarResumoItem(item) {
   const pendentes =
     Number(item.pendentes ?? item.total_pendentes ?? item.pendente ?? 0) || 0;
 
-  return { data, total, pagas, pendentes };
+  const sus =
+    Number(item.sus ?? item.total_sus ?? 0) || 0;
+
+  const master =
+    Number(item.master ?? item.total_master ?? 0) || 0;
+
+  const particular =
+    Number(item.particular ?? item.total_particular ?? 0) || 0;
+
+  return { data, total, pagas, pendentes, sus, master, particular };
 }
 
 function montarMapaResumo(resumo) {
@@ -168,10 +183,28 @@ function atualizarCardsMes() {
     return acc + normalizado.pendentes;
   }, 0);
 
+  const totalSus = resumoMes.reduce((acc, item) => {
+    const normalizado = normalizarResumoItem(item);
+    return acc + (normalizado.sus || 0);
+  }, 0);
+
+  const totalMaster = resumoMes.reduce((acc, item) => {
+    const normalizado = normalizarResumoItem(item);
+    return acc + (normalizado.master || 0);
+  }, 0);
+
+  const totalParticular = resumoMes.reduce((acc, item) => {
+    const normalizado = normalizarResumoItem(item);
+    return acc + (normalizado.particular || 0);
+  }, 0);
+
   statMesNome.textContent = nomeMes;
   statDiasComConsulta.textContent = diasComConsulta;
   statPagasMes.textContent = totalPagas;
   statPendentesMes.textContent = totalPendentes;
+  statSusMes.textContent = totalSus;
+  statMasterMes.textContent = totalMaster;
+  statParticularMes.textContent = totalParticular;
 }
 
 function renderizarCalendario() {
@@ -192,17 +225,20 @@ function renderizarCalendario() {
     const dataCard = document.createElement("button");
     dataCard.type = "button";
     dataCard.className = "calendar-day muted";
-
-    dataCard.innerHTML = `
-      <span class="day-number">${dia}</span>
-    `;
-
+    dataCard.innerHTML = `<span class="day-number">${dia}</span>`;
     calendarGrid.appendChild(dataCard);
   }
 
   for (let dia = 1; dia <= diasNoMes; dia++) {
     const dataIso = formatarDataISO(anoAtual, mesAtual, dia);
-    const resumo = mapaResumo[dataIso] || { total: 0, pagas: 0, pendentes: 0 };
+    const resumo = mapaResumo[dataIso] || {
+      total: 0,
+      pagas: 0,
+      pendentes: 0,
+      sus: 0,
+      master: 0,
+      particular: 0,
+    };
 
     const card = document.createElement("button");
     card.type = "button";
@@ -231,8 +267,9 @@ function renderizarCalendario() {
           resumo.total > 0
             ? `
               <span class="day-badge total">${resumo.total} consulta(s)</span>
-              ${resumo.pagas > 0 ? `<span class="day-badge pago">${resumo.pagas} paga(s)</span>` : ""}
-              ${resumo.pendentes > 0 ? `<span class="day-badge pendente">${resumo.pendentes} pendente(s)</span>` : ""}
+              ${resumo.sus > 0 ? `<span class="day-badge sus">SUS: ${resumo.sus}</span>` : ""}
+              ${resumo.master > 0 ? `<span class="day-badge master">MASTER: ${resumo.master}</span>` : ""}
+              ${resumo.particular > 0 ? `<span class="day-badge particular">PARTICULAR: ${resumo.particular}</span>` : ""}
             `
             : ""
         }
@@ -255,11 +292,7 @@ function renderizarCalendario() {
     const dataCard = document.createElement("button");
     dataCard.type = "button";
     dataCard.className = "calendar-day muted";
-
-    dataCard.innerHTML = `
-      <span class="day-number">${i}</span>
-    `;
-
+    dataCard.innerHTML = `<span class="day-number">${i}</span>`;
     calendarGrid.appendChild(dataCard);
   }
 }
@@ -281,9 +314,17 @@ function normalizarConsulta(consulta) {
       "Não informado",
     hora: consulta.hora_consulta || "-",
     statusPagamento: consulta.status_pagamento || "pendente",
+    tipoAtendimento: consulta.tipo_atendimento || "PARTICULAR",
     observacoes: consulta.observacoes || "",
     dataConsulta: consulta.data_consulta || "",
   };
+}
+
+function getTipoClass(tipo) {
+  const normalizado = String(tipo || "").toUpperCase();
+  if (normalizado === "SUS") return "sus";
+  if (normalizado === "MASTER") return "master";
+  return "particular";
 }
 
 async function carregarConsultasDoDia(dataIso) {
@@ -319,7 +360,8 @@ function obterConsultasDiaFiltradas() {
     return (
       item.pacienteNome.toLowerCase().includes(termo) ||
       item.cpf.toLowerCase().includes(termo) ||
-      item.telefone.toLowerCase().includes(termo)
+      item.telefone.toLowerCase().includes(termo) ||
+      item.tipoAtendimento.toLowerCase().includes(termo)
     );
   });
 }
@@ -331,6 +373,9 @@ function renderizarPainelDoDia(mensagemErro = "") {
     detalheTotal.textContent = "0";
     detalhePagas.textContent = "0";
     detalhePendentes.textContent = "0";
+    detalheSus.textContent = "0";
+    detalheMaster.textContent = "0";
+    detalheParticular.textContent = "0";
     listaConsultasDia.innerHTML = `
       <div class="empty-day">
         Selecione um dia para visualizar as consultas.
@@ -341,8 +386,17 @@ function renderizarPainelDoDia(mensagemErro = "") {
 
   const lista = obterConsultasDiaFiltradas();
   const total = consultasDoDia.length;
-  const pagas = consultasDoDia.filter((item) => item.statusPagamento === "pago").length;
-  const pendentes = consultasDoDia.filter((item) => item.statusPagamento === "pendente").length;
+  const pagas = consultasDoDia.filter(
+    (item) => item.tipoAtendimento !== "SUS" && item.statusPagamento === "pago"
+  ).length;
+  const pendentes = consultasDoDia.filter(
+    (item) => item.tipoAtendimento !== "SUS" && item.statusPagamento === "pendente"
+  ).length;
+  const sus = consultasDoDia.filter((item) => item.tipoAtendimento === "SUS").length;
+  const master = consultasDoDia.filter((item) => item.tipoAtendimento === "MASTER").length;
+  const particular = consultasDoDia.filter(
+    (item) => item.tipoAtendimento === "PARTICULAR"
+  ).length;
 
   tituloDiaSelecionado.textContent = "Consultas do dia";
   subtituloDiaSelecionado.textContent = formatarDataExtensa(dataSelecionada);
@@ -350,6 +404,9 @@ function renderizarPainelDoDia(mensagemErro = "") {
   detalheTotal.textContent = String(total);
   detalhePagas.textContent = String(pagas);
   detalhePendentes.textContent = String(pendentes);
+  detalheSus.textContent = String(sus);
+  detalheMaster.textContent = String(master);
+  detalheParticular.textContent = String(particular);
 
   if (mensagemErro) {
     listaConsultasDia.innerHTML = `
@@ -373,14 +430,28 @@ function renderizarPainelDoDia(mensagemErro = "") {
 
   listaConsultasDia.innerHTML = lista
     .map((item) => {
-      const statusClass = item.statusPagamento === "pago" ? "pago" : "pendente";
-      const statusLabel = item.statusPagamento === "pago" ? "Pago" : "Pendente";
+      const tipoClass = getTipoClass(item.tipoAtendimento);
+
+      const badges = [
+        `<span class="day-card-status ${tipoClass}">${item.tipoAtendimento}</span>`
+      ];
+
+      if (item.tipoAtendimento !== "SUS") {
+        badges.push(
+          `<span class="day-card-status ${item.statusPagamento === "pago" ? "pago" : "pendente"}">
+            ${item.statusPagamento === "pago" ? "Pago" : "Pendente"}
+          </span>`
+        );
+      }
 
       return `
         <article class="day-card">
           <div class="day-card-top">
             <strong class="day-card-name">${item.pacienteNome}</strong>
-            <span class="day-card-status ${statusClass}">${statusLabel}</span>
+          </div>
+
+          <div class="day-card-badges">
+            ${badges.join("")}
           </div>
 
           <div class="day-card-meta">

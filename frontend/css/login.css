@@ -51,9 +51,9 @@ body {
   margin-bottom: 18px;
 }
 
-.logo-img {
+img {
   width: 100%;
-  max-width: 430px;
+  max-width: 100px;
   height: auto;
   display: block;
 }
