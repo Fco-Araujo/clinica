@@ -1,4 +1,4 @@
-const API_URL = "https://friendly-spork-g4r4rw4wqq6phvx54-3000.app.github.dev";
+const API_URL = "https://clinica-jmjw.onrender.com";
 
 const token = localStorage.getItem("token");
 const usuarioSalvo = localStorage.getItem("usuario");
