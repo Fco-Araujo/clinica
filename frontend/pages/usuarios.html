@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Usuários | Clínica MassoFisio</title>
+  <link rel="stylesheet" href="../css/usuarios.css" />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+  />
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-top">
+        <div class="brand">
+          <img src="../assets/logo-massofisio.png" alt="Logo MassoFisio" class="brand-logo" />
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="./dashboard.html" class="nav-item">
+          <i class="fa-solid fa-house"></i>
+          <span>Dashboard</span>
+        </a>
+
+        <a href="./pacientes.html" class="nav-item">
+          <i class="fa-solid fa-address-book"></i>
+          <span>Pacientes</span>
+        </a>
+
+        <a href="./consultas.html" class="nav-item">
+          <i class="fa-solid fa-calendar-check"></i>
+          <span>Agendamentos</span>
+        </a>
+
+        <a href="./calendario.html" class="nav-item">
+          <i class="fa-solid fa-calendar-days"></i>
+          <span>Calendário</span>
+        </a>
+
+        <a href="./usuarios.html" class="nav-item active">
+          <i class="fa-solid fa-user"></i>
+          <span>Usuários</span>
+        </a>
+
+        <button class="nav-item nav-item-button logout-btn" id="logoutBtn" type="button">
+          <i class="fa-solid fa-right-from-bracket"></i>
+          <span>Sair</span>
+        </button>
+      </nav>
+    </aside>
+
+    <div class="main-wrapper">
+      <header class="topbar">
+        <div class="topbar-wave"></div>
+
+        <div class="topbar-content">
+          <div class="topbar-search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="searchTopbar" placeholder="Pesquisar usuário" />
+          </div>
+
+          <div class="topbar-user">
+            <div class="avatar" id="avatarUsuario">A</div>
+            <div class="user-info">
+              <strong id="nomeUsuario">Admin</strong>
+              <span id="emailUsuario">usuario@email.com</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main class="content">
+        <section class="page-header">
+          <h1>Usuários</h1>
+          <p>Cadastre e gerencie os usuários do sistema.</p>
+        </section>
+
+        <section class="page-grid">
+          <div class="form-card">
+            <div class="card-header">
+              <h2>Cadastro de usuário</h2>
+            </div>
+
+            <form id="usuarioForm" class="user-form">
+              <input type="hidden" id="usuarioId" />
+
+              <div class="form-group">
+                <label for="nomeNovoUsuario">Nome</label>
+                <div class="input-icon-wrap">
+                  <i class="fa-regular fa-user"></i>
+                  <input type="text" id="nomeNovoUsuario" placeholder="Nome do usuário" required />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="emailNovoUsuario">E-mail</label>
+                <div class="input-icon-wrap">
+                  <i class="fa-regular fa-envelope"></i>
+                  <input type="email" id="emailNovoUsuario" placeholder="email@exemplo.com" required />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="usernameNovoUsuario">Usuário</label>
+                  <input type="text" id="usernameNovoUsuario" placeholder="usuario.login" required />
+                </div>
+
+                <div class="form-group">
+                  <label for="perfilNovoUsuario">Perfil</label>
+                  <select id="perfilNovoUsuario" required>
+                    <option value="comum">Funcionário</option>
+                    <option value="admin">Administrador</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="senhaNovoUsuario">Senha</label>
+                  <input type="password" id="senhaNovoUsuario" placeholder="Digite a senha" />
+                </div>
+
+                <div class="form-group">
+                  <label for="ativoNovoUsuario">Status</label>
+                  <select id="ativoNovoUsuario" required>
+                    <option value="true">Ativo</option>
+                    <option value="false">Inativo</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn-primary" id="btnSalvarUsuario">
+                  Cadastrar usuário
+                </button>
+
+                <button type="button" class="btn-secondary" id="btnCancelarEdicao">
+                  Cancelar edição
+                </button>
+              </div>
+
+              <p id="mensagemUsuario" class="form-message"></p>
+            </form>
+          </div>
+
+          <aside class="list-card">
+            <div class="list-header">
+              <h2>Lista de usuários</h2>
+            </div>
+
+            <div class="list-search">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="searchUsuario" placeholder="Pesquisar usuário" />
+            </div>
+
+            <div id="listaUsuarios" class="users-list"></div>
+
+            <div class="pagination">
+              <span id="contadorUsuarios">0 usuários</span>
+            </div>
+          </aside>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="../js/usuarios.js"></script>
+</body>
+</html>

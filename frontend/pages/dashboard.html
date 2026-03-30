@@ -3,9 +3,213 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard</title>
+  <title>Dashboard | Clínica MassoFisio</title>
+  <link rel="stylesheet" href="../css/dashboard.css" />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+  />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-  <h1>Login funcionando</h1>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-top">
+        <div class="brand">
+          <img src="../assets/logo-massofisio.png" alt="Logo MassoFisio" class="brand-logo" />
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="./dashboard.html" class="nav-item active">
+          <i class="fa-solid fa-house"></i>
+          <span>Dashboard</span>
+        </a>
+
+        <a href="./pacientes.html" class="nav-item">
+          <i class="fa-solid fa-address-book"></i>
+          <span>Pacientes</span>
+        </a>
+
+        <a href="./consultas.html" class="nav-item">
+          <i class="fa-solid fa-calendar-check"></i>
+          <span>Agendamentos</span>
+        </a>
+
+        <a href="./calendario.html" class="nav-item">
+          <i class="fa-solid fa-calendar-days"></i>
+          <span>Calendário</span>
+        </a>
+
+        <a href="./usuarios.html" class="nav-item" id="usuariosNavItem">
+          <i class="fa-solid fa-user"></i>
+          <span>Usuários</span>
+        </a>
+
+        <button class="nav-item nav-item-button logout-btn" id="logoutBtn" type="button">
+          <i class="fa-solid fa-right-from-bracket"></i>
+          <span>Sair</span>
+        </button>
+      </nav>
+    </aside>
+
+    <div class="main-wrapper">
+      <header class="topbar">
+        <div class="topbar-wave"></div>
+
+        <div class="topbar-content">
+          <div class="topbar-search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="searchTopbar" placeholder="Pesquisar paciente ou consulta" />
+          </div>
+
+          <div class="topbar-user">
+            <div class="avatar" id="avatarUsuario">A</div>
+            <div class="user-info">
+              <strong id="nomeUsuario">Admin</strong>
+              <span id="emailUsuario">usuario@email.com</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main class="content">
+        <section class="page-header">
+          <div>
+            <h1>Dashboard</h1>
+            <p>Visão geral da clínica, pacientes e consultas.</p>
+          </div>
+
+          <div class="header-actions">
+            <button type="button" class="btn-secondary" id="btnAtualizarDashboard">
+              Atualizar dados
+            </button>
+          </div>
+        </section>
+
+        <section class="stats-grid">
+          <article class="stat-card stat-blue">
+            <div class="stat-icon">
+              <i class="fa-solid fa-users"></i>
+            </div>
+            <div>
+              <span class="stat-label">Total de pacientes</span>
+              <strong class="stat-value" id="statPacientes">0</strong>
+            </div>
+          </article>
+
+          <article class="stat-card stat-orange">
+            <div class="stat-icon">
+              <i class="fa-solid fa-calendar-check"></i>
+            </div>
+            <div>
+              <span class="stat-label">Total de consultas</span>
+              <strong class="stat-value" id="statConsultas">0</strong>
+            </div>
+          </article>
+
+          <article class="stat-card stat-green">
+            <div class="stat-icon">
+              <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <div>
+              <span class="stat-label">Consultas pagas</span>
+              <strong class="stat-value" id="statPagas">0</strong>
+            </div>
+          </article>
+
+          <article class="stat-card stat-yellow">
+            <div class="stat-icon">
+              <i class="fa-solid fa-clock"></i>
+            </div>
+            <div>
+              <span class="stat-label">Consultas pendentes</span>
+              <strong class="stat-value" id="statPendentes">0</strong>
+            </div>
+          </article>
+        </section>
+
+        <section class="kpi-grid">
+          <article class="mini-card">
+            <span class="mini-label">Consultas hoje</span>
+            <strong id="kpiHoje">0</strong>
+          </article>
+
+          <article class="mini-card">
+            <span class="mini-label">Dias com consulta no mês</span>
+            <strong id="kpiDiasMes">0</strong>
+          </article>
+
+          <article class="mini-card">
+            <span class="mini-label">Pagas no mês</span>
+            <strong id="kpiPagasMes">0</strong>
+          </article>
+
+          <article class="mini-card">
+            <span class="mini-label">Pendentes no mês</span>
+            <strong id="kpiPendentesMes">0</strong>
+          </article>
+        </section>
+
+        <section class="charts-grid">
+          <article class="chart-card">
+            <div class="card-header">
+              <h2>Consultas por pagamento</h2>
+            </div>
+            <div class="chart-wrap">
+              <canvas id="chartPagamento"></canvas>
+            </div>
+          </article>
+
+          <article class="chart-card">
+            <div class="card-header">
+              <h2>Resumo do mês</h2>
+            </div>
+            <div class="chart-wrap">
+              <canvas id="chartMensal"></canvas>
+            </div>
+          </article>
+        </section>
+
+        <section class="bottom-grid">
+          <article class="table-card">
+            <div class="card-header">
+              <h2>Próximas consultas</h2>
+            </div>
+
+            <div class="table-wrapper">
+              <table class="dashboard-table">
+                <thead>
+                  <tr>
+                    <th>Paciente</th>
+                    <th>Data</th>
+                    <th>Hora</th>
+                    <th>Pagamento</th>
+                  </tr>
+                </thead>
+                <tbody id="tbodyProximasConsultas">
+                  <tr>
+                    <td colspan="4" class="empty-row">Carregando...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="list-card">
+            <div class="card-header">
+              <h2>Pacientes recentes</h2>
+            </div>
+
+            <div id="listaPacientesRecentes" class="recent-list">
+              <div class="empty-list">Carregando...</div>
+            </div>
+          </article>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="../js/dashboard.js"></script>
 </body>
 </html>

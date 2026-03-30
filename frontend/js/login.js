@@ -33,7 +33,7 @@ function salvarSessao(dados) {
 }
 
 function redirecionarAposLogin() {
-  window.location.href = "./pages/dashboard.html";
+  window.location.href = "./pages/pacientes.html";
 }
 
 loginForm.addEventListener("submit", async (event) => {
@@ -63,13 +63,12 @@ loginForm.addEventListener("submit", async (event) => {
     });
 
     const texto = await resposta.text();
-    console.log("Resposta bruta da API:", texto);
 
     let dados;
     try {
       dados = JSON.parse(texto);
     } catch {
-      throw new Error(`A API não retornou JSON. Resposta recebida: ${texto}`);
+      throw new Error("A API não retornou uma resposta válida.");
     }
 
     if (!resposta.ok) {

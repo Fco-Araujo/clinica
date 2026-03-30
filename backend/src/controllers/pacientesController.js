@@ -3,6 +3,7 @@ import {
   listarPacientesService,
   buscarPacientePorIdService,
   atualizarPacienteService,
+  deletarPacienteService,
 } from "../services/pacientesService.js";
 
 export async function criarPaciente(req, res, next) {
@@ -51,6 +52,18 @@ export async function atualizarPaciente(req, res, next) {
     return res.status(200).json({
       mensagem: "Paciente atualizado com sucesso.",
       paciente,
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function deletarPaciente(req, res, next) {
+  try {
+    await deletarPacienteService(req.params.id);
+
+    return res.status(200).json({
+      mensagem: "Paciente removido com sucesso.",
     });
   } catch (error) {
     return next(error);

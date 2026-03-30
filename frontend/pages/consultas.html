@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Consultas | Clínica MassoFisio</title>
+  <link rel="stylesheet" href="../css/consultas.css" />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+  />
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-top">
+        <div class="brand">
+          <img src="../assets/logo-massofisio.png" alt="Logo MassoFisio" class="brand-logo" />
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="./dashboard.html" class="nav-item">
+          <i class="fa-solid fa-house"></i>
+          <span>Dashboard</span>
+        </a>
+
+        <a href="./pacientes.html" class="nav-item">
+          <i class="fa-solid fa-address-book"></i>
+          <span>Pacientes</span>
+        </a>
+
+        <a href="./consultas.html" class="nav-item active">
+          <i class="fa-solid fa-calendar-check"></i>
+          <span>Agendamentos</span>
+        </a>
+
+        <a href="./calendario.html" class="nav-item">
+          <i class="fa-solid fa-calendar-days"></i>
+          <span>Calendário</span>
+        </a>
+
+        <a href="./usuarios.html" class="nav-item">
+          <i class="fa-solid fa-user"></i>
+          <span>Usuários</span>
+        </a>
+
+        <button class="nav-item nav-item-button logout-btn" id="logoutBtn" type="button">
+          <i class="fa-solid fa-right-from-bracket"></i>
+          <span>Sair</span>
+        </button>
+      </nav>
+    </aside>
+
+    <div class="main-wrapper">
+      <header class="topbar">
+        <div class="topbar-wave"></div>
+
+        <div class="topbar-content">
+          <div class="topbar-search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="searchTopbar" placeholder="Pesquisar consulta" />
+          </div>
+
+          <div class="topbar-user">
+            <div class="avatar" id="avatarUsuario">A</div>
+            <div class="user-info">
+              <strong id="nomeUsuario">Admin</strong>
+              <span id="emailUsuario">usuario@email.com</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main class="content">
+        <section class="page-header">
+          <h1>Consultas</h1>
+          <p>Visualize, filtre e gerencie os agendamentos da clínica.</p>
+        </section>
+
+        <section class="stats-grid">
+          <article class="stat-card">
+            <span class="stat-label">Total de consultas</span>
+            <strong class="stat-value" id="statTotal">0</strong>
+          </article>
+
+          <article class="stat-card">
+            <span class="stat-label">Pagas</span>
+            <strong class="stat-value success" id="statPagas">0</strong>
+          </article>
+
+          <article class="stat-card">
+            <span class="stat-label">Pendentes</span>
+            <strong class="stat-value warning" id="statPendentes">0</strong>
+          </article>
+
+          <article class="stat-card">
+            <span class="stat-label">No dia filtrado</span>
+            <strong class="stat-value primary" id="statFiltradas">0</strong>
+          </article>
+        </section>
+
+        <section class="page-grid">
+          <div class="table-card">
+            <div class="table-header">
+              <h2>Lista de consultas</h2>
+            </div>
+
+            <div class="filters-grid">
+              <div class="filter-group">
+                <label for="filtroBusca">Pesquisar</label>
+                <input
+                  type="text"
+                  id="filtroBusca"
+                  placeholder="Nome, CPF, telefone..."
+                />
+              </div>
+
+              <div class="filter-group">
+                <label for="filtroData">Data</label>
+                <input type="date" id="filtroData" />
+              </div>
+
+              <div class="filter-group">
+                <label for="filtroTipo">Tipo</label>
+                <select id="filtroTipo">
+                  <option value="">Todos</option>
+                  <option value="PARTICULAR">PARTICULAR</option>
+                  <option value="MASTER">MASTER</option>
+                  <option value="SUS">SUS</option>
+                </select>
+              </div>
+
+              <div class="filter-group">
+                <label for="filtroPagamento">Pagamento</label>
+                <select id="filtroPagamento">
+                  <option value="">Todos</option>
+                  <option value="pago">Pago</option>
+                  <option value="pendente">Pendente</option>
+                </select>
+              </div>
+
+              <div class="filter-actions">
+                <button type="button" id="btnLimparFiltros" class="btn-secondary">
+                  Limpar filtros
+                </button>
+              </div>
+            </div>
+
+            <div class="table-wrapper">
+              <table class="consultas-table">
+                <thead>
+                  <tr>
+                    <th>Paciente</th>
+                    <th>CPF</th>
+                    <th>Telefone</th>
+                    <th>Data</th>
+                    <th>Hora</th>
+                    <th>Tipo</th>
+                    <th>Pagamento</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="consultasTableBody">
+                  <tr>
+                    <td colspan="8" class="empty-table">Carregando consultas...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <aside class="details-card">
+            <div class="details-header">
+              <h2>Detalhes / Edição</h2>
+            </div>
+
+            <form id="consultaForm" class="details-form">
+              <input type="hidden" id="consultaId" />
+
+              <div class="form-group">
+                <label for="pacienteNome">Paciente</label>
+                <input type="text" id="pacienteNome" readonly />
+              </div>
+
+              <div class="form-group">
+                <label for="consultaData">Data</label>
+                <input type="date" id="consultaData" />
+              </div>
+
+              <div class="form-group">
+                <label for="consultaHora">Hora</label>
+                <input type="time" id="consultaHora" />
+              </div>
+
+              <div class="form-group">
+                <label for="consultaTipo">Tipo</label>
+                <select id="consultaTipo">
+                  <option value="PARTICULAR">PARTICULAR</option>
+                  <option value="MASTER">MASTER</option>
+                  <option value="SUS">SUS</option>
+                </select>
+              </div>
+
+              <div class="form-group" id="grupoConsultaPagamento">
+                <label for="consultaPagamento">Pagamento</label>
+                <select id="consultaPagamento">
+                  <option value="pendente">Pendente</option>
+                  <option value="pago">Pago</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="consultaObservacoes">Observações</label>
+                <textarea
+                  id="consultaObservacoes"
+                  rows="5"
+                  placeholder="Observações da consulta"
+                ></textarea>
+              </div>
+
+              <div class="details-actions">
+                <button type="submit" id="btnSalvarConsulta" class="btn-primary">
+                  Salvar alterações
+                </button>
+
+                <button type="button" id="btnAtualizarPagamento" class="btn-secondary">
+                  Atualizar pagamento
+                </button>
+
+                <button type="button" id="btnExcluirConsulta" class="btn-danger">
+                  Excluir consulta
+                </button>
+              </div>
+
+              <p id="mensagemConsulta" class="form-message"></p>
+            </form>
+          </aside>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="../js/consultas.js"></script>
+</body>
+</html>

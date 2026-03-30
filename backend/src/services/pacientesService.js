@@ -116,7 +116,9 @@ export async function atualizarPacienteService(id, payload) {
   const nome = payload.nome?.trim() || pacienteAtual.nome;
   const cpf = payload.cpf ? onlyNumbers(payload.cpf) : pacienteAtual.cpf;
   const telefone =
-    payload.telefone !== undefined ? payload.telefone?.trim() || null : pacienteAtual.telefone;
+    payload.telefone !== undefined
+      ? payload.telefone?.trim() || null
+      : pacienteAtual.telefone;
   const observacoes =
     payload.observacoes !== undefined
       ? payload.observacoes?.trim() || null
@@ -164,4 +166,32 @@ export async function atualizarPacienteService(id, payload) {
   }
 
   return data;
+}
+
+export async function deletarPacienteService(id) {
+  if (!supabaseAdmin) {
+    throw new Error("Supabase não configurado.");
+  }
+
+  await buscarPacientePorIdService(id);
+
+  const { error: erroConsultas } = await supabaseAdmin
+    .from("consultas")
+    .delete()
+    .eq("paciente_id", id);
+
+  if (erroConsultas) {
+    throw new Error("Erro ao remover consultas vinculadas ao paciente.");
+  }
+
+  const { error } = await supabaseAdmin
+    .from("pacientes")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    throw new Error("Erro ao remover paciente.");
+  }
+
+  return true;
 }

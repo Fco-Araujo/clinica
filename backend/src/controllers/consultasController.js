@@ -27,6 +27,7 @@ export async function listarConsultas(req, res, next) {
       data: req.query.data,
       paciente_id: req.query.paciente_id,
       status_pagamento: req.query.status_pagamento,
+      tipo_atendimento: req.query.tipo_atendimento,
     };
 
     const consultas = await listarConsultasService(filtros);

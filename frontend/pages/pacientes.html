@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pacientes | Clínica MassoFisio</title>
+  <link rel="stylesheet" href="../css/pacientes.css" />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+  />
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-top">
+        <div class="brand">
+          <img src="../assets/logo-massofisio.png" alt="Logo MassoFisio" class="brand-logo" />
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="./dashboard.html" class="nav-item">
+          <i class="fa-solid fa-house"></i>
+          <span>Dashboard</span>
+        </a>
+
+        <a href="./pacientes.html" class="nav-item active">
+          <i class="fa-solid fa-address-book"></i>
+          <span>Pacientes</span>
+        </a>
+
+        <a href="./consultas.html" class="nav-item">
+          <i class="fa-solid fa-calendar-check"></i>
+          <span>Agendamentos</span>
+        </a>
+
+        <a href="./calendario.html" class="nav-item">
+          <i class="fa-solid fa-calendar-days"></i>
+          <span>Calendário</span>
+        </a>
+
+        <a href="./usuarios.html" class="nav-item">
+          <i class="fa-solid fa-user"></i>
+          <span>Usuários</span>
+        </a>
+
+        <button class="nav-item nav-item-button logout-btn" id="logoutBtn" type="button">
+          <i class="fa-solid fa-right-from-bracket"></i>
+          <span>Sair</span>
+        </button>
+      </nav>
+    </aside>
+
+    <div class="main-wrapper">
+      <header class="topbar">
+        <div class="topbar-wave"></div>
+
+        <div class="topbar-content">
+          <div class="topbar-search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="searchTopbar" placeholder="Pesquisar paciente" />
+          </div>
+
+          <div class="topbar-user">
+            <div class="avatar" id="avatarUsuario">A</div>
+            <div class="user-info">
+              <strong id="nomeUsuario">Admin</strong>
+              <span id="emailUsuario">usuario@email.com</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main class="content">
+        <section class="page-header">
+          <h1>Cadastro de Paciente</h1>
+          <p>Preencha os dados do paciente e agende a consulta.</p>
+        </section>
+
+        <section class="page-grid">
+          <div class="form-card">
+            <div class="form-section-header">
+              <h2>Agendamentos</h2>
+            </div>
+
+            <form id="pacienteForm" class="patient-form">
+              <input type="hidden" id="pacienteId" />
+
+              <div class="form-group full">
+                <label for="nomePaciente">Nome do Paciente</label>
+                <div class="input-icon-wrap">
+                  <i class="fa-regular fa-user"></i>
+                  <input type="text" id="nomePaciente" placeholder="Nome do Paciente" required />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="cpfPaciente">CPF</label>
+                  <input type="text" id="cpfPaciente" placeholder="000.000.000-00" required />
+                </div>
+
+                <div class="form-group">
+                  <label for="telefonePaciente">Telefone</label>
+                  <div class="input-icon-wrap">
+                    <i class="fa-solid fa-phone"></i>
+                    <input type="text" id="telefonePaciente" placeholder="(00) 00000-0000" />
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group full">
+                <label for="observacoesPaciente">Observações</label>
+                <textarea
+                  id="observacoesPaciente"
+                  placeholder="Observações do paciente"
+                  rows="4"
+                ></textarea>
+              </div>
+
+              <div class="appointments-box">
+                <div class="appointments-header">
+                  <h3>Agendamentos</h3>
+                </div>
+
+                <div class="appointment-create-grid">
+                  <div class="form-group">
+                    <label for="dataConsulta">Data</label>
+                    <input type="date" id="dataConsulta" />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="horaConsulta">Hora</label>
+                    <input type="time" id="horaConsulta" />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="tipoAtendimento">Tipo</label>
+                    <select id="tipoAtendimento">
+                      <option value="PARTICULAR">PARTICULAR</option>
+                      <option value="MASTER">MASTER</option>
+                      <option value="SUS">SUS</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group" id="grupoStatusPagamento">
+                    <label for="statusPagamento">Pagamento</label>
+                    <select id="statusPagamento">
+                      <option value="pendente">Pendente</option>
+                      <option value="pago">Pago</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="appointments-actions appointments-actions-top">
+                  <button type="button" id="btnAdicionarAgendamento" class="btn-secondary">
+                    Adicionar agendamento
+                  </button>
+                </div>
+
+                <div id="listaAgendamentos" class="appointments-list">
+                  <div class="appointment-item">
+                    <div class="appointment-left">
+                      <i class="fa-regular fa-calendar"></i>
+                      <span>Nenhum agendamento adicionado</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn-primary" id="btnSalvarPaciente">
+                  Salvar Paciente e Consulta
+                </button>
+              </div>
+
+              <p id="mensagemPaciente" class="form-message"></p>
+            </form>
+          </div>
+
+          <aside class="list-card">
+            <div class="list-search">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="searchPaciente" placeholder="Pesquisar paciente" />
+            </div>
+
+            <div id="listaPacientes" class="patients-list"></div>
+
+            <div class="pagination">
+              <span id="contadorPacientes">0 pacientes</span>
+            </div>
+          </aside>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="../js/pacientes.js"></script>
+</body>
+</html>

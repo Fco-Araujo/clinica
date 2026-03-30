@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calendário | Clínica MassoFisio</title>
+  <link rel="stylesheet" href="../css/calendario.css" />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+  />
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-top">
+        <div class="brand">
+          <img src="../assets/logo-massofisio.png" alt="Logo MassoFisio" class="brand-logo" />
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="./dashboard.html" class="nav-item">
+          <i class="fa-solid fa-house"></i>
+          <span>Dashboard</span>
+        </a>
+
+        <a href="./pacientes.html" class="nav-item">
+          <i class="fa-solid fa-address-book"></i>
+          <span>Pacientes</span>
+        </a>
+
+        <a href="./consultas.html" class="nav-item">
+          <i class="fa-solid fa-calendar-check"></i>
+          <span>Agendamentos</span>
+        </a>
+
+        <a href="./calendario.html" class="nav-item active">
+          <i class="fa-solid fa-calendar-days"></i>
+          <span>Calendário</span>
+        </a>
+
+        <a href="./usuarios.html" class="nav-item">
+          <i class="fa-solid fa-user"></i>
+          <span>Usuários</span>
+        </a>
+
+        <button class="nav-item nav-item-button logout-btn" id="logoutBtn" type="button">
+          <i class="fa-solid fa-right-from-bracket"></i>
+          <span>Sair</span>
+        </button>
+      </nav>
+    </aside>
+
+    <div class="main-wrapper">
+      <header class="topbar">
+        <div class="topbar-wave"></div>
+
+        <div class="topbar-content">
+          <div class="topbar-search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="searchTopbar" placeholder="Pesquisar paciente no dia selecionado" />
+          </div>
+
+          <div class="topbar-user">
+            <div class="avatar" id="avatarUsuario">A</div>
+            <div class="user-info">
+              <strong id="nomeUsuario">Admin</strong>
+              <span id="emailUsuario">usuario@email.com</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main class="content">
+        <section class="page-header">
+          <h1>Calendário</h1>
+          <p>Visualize os agendamentos por dia e acompanhe os pagamentos.</p>
+        </section>
+
+        <section class="stats-grid">
+          <article class="stat-card">
+            <span class="stat-label">Mês selecionado</span>
+            <strong class="stat-value primary" id="statMesNome">-</strong>
+          </article>
+
+          <article class="stat-card">
+            <span class="stat-label">Dias com consulta</span>
+            <strong class="stat-value" id="statDiasComConsulta">0</strong>
+          </article>
+
+          <article class="stat-card">
+            <span class="stat-label">Consultas pagas no mês</span>
+            <strong class="stat-value success" id="statPagasMes">0</strong>
+          </article>
+
+          <article class="stat-card">
+            <span class="stat-label">Consultas pendentes no mês</span>
+            <strong class="stat-value warning" id="statPendentesMes">0</strong>
+          </article>
+        </section>
+
+        <section class="calendar-toolbar">
+          <div class="calendar-nav">
+            <button type="button" id="btnMesAnterior" class="btn-secondary">
+              <i class="fa-solid fa-chevron-left"></i>
+            </button>
+
+            <div class="calendar-title-wrap">
+              <h2 id="tituloCalendario">Mês</h2>
+              <span id="subtituloCalendario">Ano</span>
+            </div>
+
+            <button type="button" id="btnMesProximo" class="btn-secondary">
+              <i class="fa-solid fa-chevron-right"></i>
+            </button>
+          </div>
+
+          <div class="calendar-actions">
+            <button type="button" id="btnHoje" class="btn-secondary">Hoje</button>
+          </div>
+        </section>
+
+        <section class="page-grid">
+          <div class="calendar-card">
+            <div class="weekdays">
+              <div>Dom</div>
+              <div>Seg</div>
+              <div>Ter</div>
+              <div>Qua</div>
+              <div>Qui</div>
+              <div>Sex</div>
+              <div>Sáb</div>
+            </div>
+
+            <div id="calendarGrid" class="calendar-grid"></div>
+          </div>
+
+          <aside class="details-card">
+            <div class="details-header">
+              <h2 id="tituloDiaSelecionado">Detalhes do dia</h2>
+              <p id="subtituloDiaSelecionado">Selecione um dia no calendário</p>
+            </div>
+
+            <div class="details-summary">
+              <div class="summary-item">
+                <span>Total</span>
+                <strong id="detalheTotal">0</strong>
+              </div>
+
+              <div class="summary-item">
+                <span>Pagas</span>
+                <strong id="detalhePagas" class="success">0</strong>
+              </div>
+
+              <div class="summary-item">
+                <span>Pendentes</span>
+                <strong id="detalhePendentes" class="warning">0</strong>
+              </div>
+            </div>
+
+            <div class="details-search">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="searchDia" placeholder="Pesquisar paciente neste dia" />
+            </div>
+
+            <div id="listaConsultasDia" class="day-list">
+              <div class="empty-day">
+                Selecione um dia para visualizar as consultas.
+              </div>
+            </div>
+          </aside>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="../js/calendario.js"></script>
+</body>
+</html>

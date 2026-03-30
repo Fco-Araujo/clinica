@@ -33,7 +33,7 @@ app.use(morgan("dev"));
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10,
+  max: 100,
   message: {
     erro: "Muitas tentativas. Tente novamente em alguns minutos.",
   },

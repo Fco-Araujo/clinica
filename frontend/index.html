@@ -5,50 +5,58 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Login | Clínica MassoFisio</title>
   <link rel="stylesheet" href="./css/login.css" />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+  />
 </head>
 <body>
   <main class="login-page">
-    <section class="login-card">
-      <div class="login-brand">
-        <div class="brand-logo">
-          <span class="logo-masso">Masso</span><span class="logo-fisio">Fisio</span>
-        </div>
-        <p class="brand-subtitle">Sistema de Agendamento</p>
+    <section class="login-box">
+      <div class="logo-area">
+        <img
+          src="./assets/logo-massofisio.png"
+          alt="Logo Clínica MassoFisio"
+          class="logo-img"
+        />
       </div>
 
-      <div class="login-header">
-        <h1>Bem-vindo de volta</h1>
-        <p>Entre com seu e-mail e senha para acessar o sistema.</p>
-      </div>
+      <h1 class="login-title">Bem-vindo de volta!</h1>
 
       <form id="loginForm" class="login-form">
         <div class="input-group">
-          <label for="email">E-mail</label>
+          <span class="input-icon">
+            <i class="fa-regular fa-envelope"></i>
+          </span>
           <input
             type="email"
             id="email"
             name="email"
-            placeholder="Digite seu e-mail"
+            placeholder="E-mail"
             required
             autocomplete="email"
           />
         </div>
 
         <div class="input-group">
-          <label for="senha">Senha</label>
-          <div class="password-wrapper">
-            <input
-              type="password"
-              id="senha"
-              name="senha"
-              placeholder="Digite sua senha"
-              required
-              autocomplete="current-password"
-            />
-            <button type="button" id="toggleSenha" class="toggle-password">
-              Mostrar
-            </button>
-          </div>
+          <span class="input-icon">
+            <i class="fa-solid fa-lock"></i>
+          </span>
+          <input
+            type="password"
+            id="senha"
+            name="senha"
+            placeholder="Senha"
+            required
+            autocomplete="current-password"
+          />
+          <button type="button" id="toggleSenha" class="toggle-password">
+            Mostrar
+          </button>
+        </div>
+
+        <div class="forgot-password">
+          <a href="#">Esqueceu sua senha?</a>
         </div>
 
         <button type="submit" id="btnEntrar" class="btn-login">
@@ -57,38 +65,10 @@
 
         <p id="mensagem" class="mensagem-feedback"></p>
       </form>
-    </section>
 
-    <section class="login-side">
-      <div class="side-overlay"></div>
-
-      <div class="side-content">
-        <span class="side-badge">Clínica MassoFisio</span>
-        <h2>Organize atendimentos com praticidade e controle</h2>
-        <p>
-          Gerencie pacientes, consultas, pagamentos e a agenda da clínica
-          em um sistema moderno, rápido e seguro.
-        </p>
-
-        <div class="side-features">
-          <div class="feature-item">
-            <span class="feature-icon">✓</span>
-            <span>Cadastro de pacientes</span>
-          </div>
-          <div class="feature-item">
-            <span class="feature-icon">✓</span>
-            <span>Controle de consultas</span>
-          </div>
-          <div class="feature-item">
-            <span class="feature-icon">✓</span>
-            <span>Calendário com indicadores</span>
-          </div>
-          <div class="feature-item">
-            <span class="feature-icon">✓</span>
-            <span>Acesso por perfil de usuário</span>
-          </div>
-        </div>
-      </div>
+      <p class="login-footer">
+        Sistema de gestão de agendamentos da Clínica MassoFisio.
+      </p>
     </section>
   </main>
 
