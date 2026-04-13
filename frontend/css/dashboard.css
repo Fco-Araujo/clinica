@@ -27,10 +27,20 @@
   --font: "Segoe UI", Arial, sans-serif;
 }
 
+html,
+body {
+  min-height: 100%;
+  overflow-x: hidden;
+}
+
 body {
   font-family: var(--font);
   background: var(--bg);
   color: var(--text);
+}
+
+body.menu-open {
+  overflow: hidden;
 }
 
 button,
@@ -43,6 +53,10 @@ input {
   display: flex;
 }
 
+.sidebar-overlay {
+  display: none;
+}
+
 .sidebar {
   width: var(--sidebar-width);
   background: linear-gradient(180deg, #173679 0%, #0f2d67 100%);
@@ -53,6 +67,7 @@ input {
   bottom: 0;
   padding: 22px 18px;
   box-shadow: 8px 0 30px rgba(10, 27, 63, 0.08);
+  z-index: 1200;
 }
 
 .sidebar-top {
@@ -116,6 +131,7 @@ input {
   flex: 1;
   margin-left: var(--sidebar-width);
   min-height: 100vh;
+  min-width: 0;
 }
 
 .topbar {
@@ -144,6 +160,21 @@ input {
   justify-content: flex-end;
   gap: 22px;
   padding: 0 34px;
+}
+
+.menu-toggle {
+  display: none;
+  width: 46px;
+  height: 46px;
+  border: none;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-size: 1.15rem;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .topbar-search {
@@ -275,6 +306,7 @@ input {
   justify-content: center;
   font-size: 1.4rem;
   color: #fff;
+  flex-shrink: 0;
 }
 
 .stat-blue .stat-icon {
@@ -372,6 +404,12 @@ input {
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.8fr);
   gap: 20px;
+  align-items: start;
+}
+
+.table-card,
+.list-card {
+  min-width: 0;
 }
 
 .table-wrapper {
@@ -404,6 +442,41 @@ input {
   padding: 26px 12px !important;
 }
 
+.mobile-consultas-list {
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mobile-consulta-card {
+  border: 1px solid #edf0f5;
+  background: #fcfcfd;
+  border-radius: 18px;
+  padding: 14px;
+}
+
+.mobile-consulta-card strong {
+  display: block;
+  font-size: 1rem;
+  color: var(--primary);
+  margin-bottom: 10px;
+}
+
+.mobile-consulta-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.92rem;
+  color: #566b95;
+}
+
+.mobile-consulta-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
 .recent-list {
   display: flex;
   flex-direction: column;
@@ -425,6 +498,7 @@ input {
   font-size: 1rem;
   color: var(--primary);
   margin-bottom: 6px;
+  word-break: break-word;
 }
 
 .recent-item span {
@@ -432,6 +506,7 @@ input {
   font-size: 0.93rem;
   color: #566b95;
   line-height: 1.4;
+  word-break: break-word;
 }
 
 .empty-list {
@@ -530,14 +605,154 @@ input {
   }
 }
 
-@media (max-width: 680px) {
+@media (max-width: 768px) {
+  .menu-toggle {
+    display: inline-flex;
+  }
+
+  .sidebar {
+    width: 280px;
+    max-width: 82vw;
+    transform: translateX(-100%);
+    transition: transform 0.28s ease;
+    padding: 22px 16px;
+  }
+
+  .sidebar.sidebar-open {
+    transform: translateX(0);
+  }
+
+  .sidebar-nav .nav-item span {
+    display: inline;
+  }
+
+  .nav-item {
+    justify-content: flex-start;
+    padding: 15px 16px;
+  }
+
+  .main-wrapper {
+    margin-left: 0;
+  }
+
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(8, 19, 45, 0.45);
+    opacity: 0;
+    visibility: hidden;
+    transition: 0.25s ease;
+    z-index: 1100;
+  }
+
+  .sidebar-overlay.show {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .topbar {
+    height: 88px;
+  }
+
+  .topbar-wave {
+    width: 200px;
+  }
+
+  .topbar-content {
+    justify-content: space-between;
+    padding: 0 16px;
+    gap: 12px;
+  }
+
   .content {
-    padding: 18px;
+    padding: 16px;
   }
 
   .page-header {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .page-header h1 {
+    font-size: 1.9rem;
+  }
+
+  .page-header p {
+    font-size: 0.98rem;
+  }
+
+  .header-actions {
+    width: 100%;
+  }
+
+  .header-actions .btn-secondary {
+    width: 100%;
+  }
+
+  .stats-grid,
+  .kpi-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .stat-card,
+  .mini-card,
+  .chart-card,
+  .table-card,
+  .list-card {
+    border-radius: 22px;
+  }
+
+  .stat-card {
+    padding: 18px;
+  }
+
+  .stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 16px;
+    font-size: 1.2rem;
+  }
+
+  .stat-value {
+    font-size: 1.6rem;
+  }
+
+  .mini-card {
+    padding: 16px 18px;
+  }
+
+  .mini-card strong {
+    font-size: 1.45rem;
+  }
+
+  .chart-card,
+  .table-card,
+  .list-card {
+    padding: 18px;
+  }
+
+  .card-header h2 {
+    font-size: 1.3rem;
+  }
+
+  .chart-wrap {
+    height: 260px;
+  }
+
+  .table-wrapper {
+    display: none;
+  }
+
+  .mobile-consultas-list {
+    display: flex;
+  }
+}
+
+@media (max-width: 680px) {
+  .content {
+    padding: 18px;
   }
 
   .page-header h1 {
@@ -559,5 +774,131 @@ input {
 
   .chart-wrap {
     height: 260px;
+  }
+}
+
+@media (max-width: 480px) {
+  .topbar {
+    height: 80px;
+  }
+
+  .topbar-content {
+    padding: 0 12px;
+  }
+
+  .menu-toggle {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+  }
+
+  .topbar-user {
+    gap: 8px;
+  }
+
+  .avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .content {
+    padding: 14px;
+  }
+
+  .page-header h1 {
+    font-size: 1.55rem;
+  }
+
+  .page-header p {
+    font-size: 0.92rem;
+  }
+
+  .stat-card,
+  .mini-card,
+  .chart-card,
+  .table-card,
+  .list-card {
+    padding: 16px;
+  }
+
+  .stat-card {
+    flex-direction: row;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .chart-wrap {
+    height: 220px;
+  }
+
+  .badge-status {
+    font-size: 0.8rem;
+    padding: 7px 10px;
+    min-width: 84px;
+  }
+
+  .mobile-consulta-card {
+    padding: 12px;
+    border-radius: 16px;
+  }
+
+  .mobile-consulta-meta {
+    font-size: 0.88rem;
+  }
+
+  .recent-item strong {
+    font-size: 0.95rem;
+  }
+
+  .recent-item span {
+    font-size: 0.88rem;
+  }
+
+  .btn-secondary {
+    font-size: 0.88rem;
+    padding: 10px 12px;
+  }
+}
+
+/* Card de pacientes recentes com altura fixa */
+.list-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.recent-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 420px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+}
+
+/* Scroll bonito */
+.recent-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.recent-list::-webkit-scrollbar-thumb {
+  background: #d3d8e5;
+  border-radius: 999px;
+}
+
+.recent-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@media (max-width: 768px) {
+  .recent-list {
+    max-height: 320px;
+  }
+}
+
+@media (max-width: 480px) {
+  .recent-list {
+    max-height: 280px;
   }
 }

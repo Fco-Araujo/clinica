@@ -40,8 +40,13 @@ const kpiPagasMes = document.getElementById("kpiPagasMes");
 const kpiPendentesMes = document.getElementById("kpiPendentesMes");
 
 const tbodyProximasConsultas = document.getElementById("tbodyProximasConsultas");
+const cardsProximasConsultas = document.getElementById("cardsProximasConsultas");
 const listaPacientesRecentes = document.getElementById("listaPacientesRecentes");
 const searchTopbar = document.getElementById("searchTopbar");
+
+const sidebar = document.getElementById("sidebar");
+const sidebarOverlay = document.getElementById("sidebarOverlay");
+const menuToggle = document.getElementById("menuToggle");
 
 let pacientes = [];
 let consultas = [];
@@ -392,13 +397,13 @@ function obterConsultasFiltradasBusca() {
   });
 }
 
-function renderizarProximasConsultas() {
+function obterProximasConsultas() {
   const hojeBase = new Date();
   hojeBase.setHours(0, 0, 0, 0);
 
   const filtradas = obterConsultasFiltradasBusca();
 
-  const futuras = filtradas
+  return filtradas
     .filter((item) => item.dataConsulta)
     .sort((a, b) => {
       const dataA = new Date(`${a.dataConsulta}T${a.horaConsulta === "-" ? "00:00" : a.horaConsulta}`);
@@ -410,12 +415,20 @@ function renderizarProximasConsultas() {
       return data >= hojeBase;
     })
     .slice(0, 8);
+}
+
+function renderizarProximasConsultas() {
+  const futuras = obterProximasConsultas();
 
   if (!futuras.length) {
     tbodyProximasConsultas.innerHTML = `
       <tr>
         <td colspan="5" class="empty-row">Nenhuma consulta encontrada.</td>
       </tr>
+    `;
+
+    cardsProximasConsultas.innerHTML = `
+      <div class="empty-list">Nenhuma consulta encontrada.</div>
     `;
     return;
   }
@@ -441,6 +454,40 @@ function renderizarProximasConsultas() {
           <td><span class="badge-status ${tipoClass}">${item.tipoAtendimento}</span></td>
           <td>${pagamentoHtml}</td>
         </tr>
+      `;
+    })
+    .join("");
+
+  cardsProximasConsultas.innerHTML = futuras
+    .map((item) => {
+      const tipoClass = getTipoBadgeClass(item.tipoAtendimento);
+
+      let pagamentoHtml = `<span class="mobile-consulta-meta"><strong>Pagamento:</strong> Não se aplica</span>`;
+      if (item.tipoAtendimento !== "SUS") {
+        pagamentoHtml = `
+          <div class="mobile-consulta-badges">
+            <span class="badge-status ${item.statusPagamento === "pago" ? "pago" : "pendente"}">
+              ${item.statusPagamento === "pago" ? "Pago" : "Pendente"}
+            </span>
+          </div>
+        `;
+      }
+
+      return `
+        <article class="mobile-consulta-card">
+          <strong>${item.pacienteNome}</strong>
+
+          <div class="mobile-consulta-meta">
+            <span><strong>Data:</strong> ${formatarDataBR(item.dataConsulta)}</span>
+            <span><strong>Hora:</strong> ${item.horaConsulta}</span>
+          </div>
+
+          <div class="mobile-consulta-badges">
+            <span class="badge-status ${tipoClass}">${item.tipoAtendimento}</span>
+          </div>
+
+          ${pagamentoHtml}
+        </article>
       `;
     })
     .join("");
@@ -511,6 +558,10 @@ async function carregarTudo() {
       </tr>
     `;
 
+    cardsProximasConsultas.innerHTML = `
+      <div class="empty-list">Erro ao carregar dados.</div>
+    `;
+
     listaPacientesRecentes.innerHTML = `
       <div class="empty-list">Erro ao carregar dados.</div>
     `;
@@ -535,8 +586,54 @@ logoutBtn.addEventListener("click", () => {
   window.location.href = "../index.html";
 });
 
+function abrirMenuMobile() {
+  if (!sidebar || !sidebarOverlay || !menuToggle) return;
+  sidebar.classList.add("sidebar-open");
+  sidebarOverlay.classList.add("show");
+  document.body.classList.add("menu-open");
+  menuToggle.setAttribute("aria-expanded", "true");
+}
+
+function fecharMenuMobile() {
+  if (!sidebar || !sidebarOverlay || !menuToggle) return;
+  sidebar.classList.remove("sidebar-open");
+  sidebarOverlay.classList.remove("show");
+  document.body.classList.remove("menu-open");
+  menuToggle.setAttribute("aria-expanded", "false");
+}
+
+function configurarMenuMobile() {
+  if (!menuToggle || !sidebar || !sidebarOverlay) return;
+
+  menuToggle.addEventListener("click", () => {
+    const aberto = sidebar.classList.contains("sidebar-open");
+    if (aberto) {
+      fecharMenuMobile();
+    } else {
+      abrirMenuMobile();
+    }
+  });
+
+  sidebarOverlay.addEventListener("click", fecharMenuMobile);
+
+  sidebar.querySelectorAll(".nav-item").forEach((item) => {
+    item.addEventListener("click", () => {
+      if (window.innerWidth <= 768) {
+        fecharMenuMobile();
+      }
+    });
+  });
+
+  window.addEventListener("resize", () => {
+    if (window.innerWidth > 768) {
+      fecharMenuMobile();
+    }
+  });
+}
+
 async function init() {
   preencherUsuarioNaTela();
+  configurarMenuMobile();
   await validarSessao();
   await carregarTudo();
 }

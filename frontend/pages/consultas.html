@@ -12,7 +12,9 @@
 </head>
 <body>
   <div class="app-layout">
-    <aside class="sidebar">
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <aside class="sidebar" id="sidebar">
       <div class="sidebar-top">
         <!-- <div class="brand">
           <img src="../assets/logo-massofisio.png" alt="Logo MassoFisio" class="brand-logo" />
@@ -57,6 +59,16 @@
         <div class="topbar-wave"></div>
 
         <div class="topbar-content">
+          <button
+            type="button"
+            class="menu-toggle"
+            id="menuToggle"
+            aria-label="Abrir menu"
+            aria-expanded="false"
+          >
+            <i class="fa-solid fa-bars"></i>
+          </button>
+
           <div class="topbar-search">
             <i class="fa-solid fa-magnifying-glass"></i>
             <input type="text" id="searchTopbar" placeholder="Pesquisar consulta" />
@@ -167,6 +179,10 @@
                   </tr>
                 </tbody>
               </table>
+            </div>
+
+            <div id="consultasCards" class="consultas-cards">
+              <div class="empty-cards">Carregando consultas...</div>
             </div>
           </div>
 

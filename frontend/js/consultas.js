@@ -36,6 +36,7 @@ const searchTopbar = document.getElementById("searchTopbar");
 const btnLimparFiltros = document.getElementById("btnLimparFiltros");
 
 const consultasTableBody = document.getElementById("consultasTableBody");
+const consultasCards = document.getElementById("consultasCards");
 
 const consultaForm = document.getElementById("consultaForm");
 const consultaIdInput = document.getElementById("consultaId");
@@ -53,6 +54,10 @@ const btnExcluirConsulta = document.getElementById("btnExcluirConsulta");
 const mensagemConsulta = document.getElementById("mensagemConsulta");
 
 const logoutBtn = document.getElementById("logoutBtn");
+
+const sidebar = document.getElementById("sidebar");
+const sidebarOverlay = document.getElementById("sidebarOverlay");
+const menuToggle = document.getElementById("menuToggle");
 
 let consultas = [];
 let consultaSelecionada = null;
@@ -172,6 +177,7 @@ async function carregarConsultas() {
         <td colspan="8" class="empty-table">Erro ao carregar consultas.</td>
       </tr>
     `;
+    consultasCards.innerHTML = `<div class="empty-cards">Erro ao carregar consultas.</div>`;
   }
 }
 
@@ -185,24 +191,9 @@ function obterConsultasFiltradas() {
   }
 
   return consultas.filter((consulta) => {
-    const pacienteNome = (
-      consulta.paciente?.nome ||
-      consulta.nome_paciente ||
-      ""
-    ).toLowerCase();
-
-    const cpf = (
-      consulta.paciente?.cpf ||
-      consulta.cpf ||
-      ""
-    ).toLowerCase();
-
-    const telefone = (
-      consulta.paciente?.telefone ||
-      consulta.telefone ||
-      ""
-    ).toLowerCase();
-
+    const pacienteNome = (consulta.paciente?.nome || consulta.nome_paciente || "").toLowerCase();
+    const cpf = (consulta.paciente?.cpf || consulta.cpf || "").toLowerCase();
+    const telefone = (consulta.paciente?.telefone || consulta.telefone || "").toLowerCase();
     const tipo = (consulta.tipo_atendimento || "").toLowerCase();
 
     return (
@@ -214,6 +205,30 @@ function obterConsultasFiltradas() {
   });
 }
 
+function montarAcoesConsulta(consulta, tipo, status) {
+  if (isAdmin) {
+    return `
+      <div class="table-actions consulta-card-actions">
+        <button class="btn-table" data-open="${consulta.id}">Abrir</button>
+        ${
+          tipo !== "SUS"
+            ? `<button class="btn-table" data-pay="${consulta.id}">
+                ${status === "pago" ? "Marcar pendente" : "Marcar pago"}
+              </button>`
+            : ""
+        }
+        <button class="btn-table" data-delete="${consulta.id}">Excluir</button>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="table-actions consulta-card-actions">
+      <button class="btn-table" data-open="${consulta.id}">Visualizar</button>
+    </div>
+  `;
+}
+
 function renderizarConsultas() {
   const filtradas = obterConsultasFiltradas();
 
@@ -223,6 +238,11 @@ function renderizarConsultas() {
         <td colspan="8" class="empty-table">Nenhuma consulta encontrada.</td>
       </tr>
     `;
+
+    consultasCards.innerHTML = `
+      <div class="empty-cards">Nenhuma consulta encontrada.</div>
+    `;
+
     atualizarCards();
     return;
   }
@@ -246,26 +266,6 @@ function renderizarConsultas() {
         `;
       }
 
-      const acoesAdmin = isAdmin
-        ? `
-          <div class="table-actions">
-            <button class="btn-table" data-open="${consulta.id}">Abrir</button>
-            ${
-              tipo !== "SUS"
-                ? `<button class="btn-table" data-pay="${consulta.id}">
-                    ${status === "pago" ? "Marcar pendente" : "Marcar pago"}
-                  </button>`
-                : ""
-            }
-            <button class="btn-table" data-delete="${consulta.id}">Excluir</button>
-          </div>
-        `
-        : `
-          <div class="table-actions">
-            <button class="btn-table" data-open="${consulta.id}">Visualizar</button>
-          </div>
-        `;
-
       return `
         <tr>
           <td>${pacienteNome}</td>
@@ -275,8 +275,65 @@ function renderizarConsultas() {
           <td>${hora}</td>
           <td>${tipo}</td>
           <td>${pagamentoHtml}</td>
-          <td>${acoesAdmin}</td>
+          <td>${montarAcoesConsulta(consulta, tipo, status)}</td>
         </tr>
+      `;
+    })
+    .join("");
+
+  consultasCards.innerHTML = filtradas
+    .map((consulta) => {
+      const pacienteNome = consulta.paciente?.nome || consulta.nome_paciente || "Não informado";
+      const cpf = consulta.paciente?.cpf || consulta.cpf || "Não informado";
+      const telefone = consulta.paciente?.telefone || consulta.telefone || "Não informado";
+      const data = formatarDataBR(consulta.data_consulta);
+      const hora = consulta.hora_consulta || "-";
+      const tipo = consulta.tipo_atendimento || "PARTICULAR";
+      const status = consulta.status_pagamento || null;
+
+      const pagamentoHtml =
+        tipo === "SUS"
+          ? `<span class="consulta-card-value">Não se aplica</span>`
+          : `<span class="badge-status ${status === "pago" ? "pago" : "pendente"}">
+              ${status === "pago" ? "Pago" : "Pendente"}
+            </span>`;
+
+      return `
+        <article class="consulta-card">
+          <div class="consulta-card-top">
+            <strong class="consulta-card-name">${pacienteNome}</strong>
+            <span class="badge-status consulta-card-type">${tipo}</span>
+          </div>
+
+          <div class="consulta-card-grid">
+            <div class="consulta-card-item">
+              <span class="consulta-card-label">CPF</span>
+              <span class="consulta-card-value">${cpf}</span>
+            </div>
+
+            <div class="consulta-card-item">
+              <span class="consulta-card-label">Telefone</span>
+              <span class="consulta-card-value">${telefone}</span>
+            </div>
+
+            <div class="consulta-card-item">
+              <span class="consulta-card-label">Data</span>
+              <span class="consulta-card-value">${data}</span>
+            </div>
+
+            <div class="consulta-card-item">
+              <span class="consulta-card-label">Hora</span>
+              <span class="consulta-card-value">${hora}</span>
+            </div>
+
+            <div class="consulta-card-item">
+              <span class="consulta-card-label">Pagamento</span>
+              ${pagamentoHtml}
+            </div>
+          </div>
+
+          ${montarAcoesConsulta(consulta, tipo, status)}
+        </article>
       `;
     })
     .join("");
@@ -300,8 +357,7 @@ async function abrirConsulta(id) {
     consultaSelecionada = consulta;
 
     consultaIdInput.value = consulta.id || "";
-    pacienteNomeInput.value =
-      consulta.paciente?.nome || consulta.nome_paciente || "Paciente";
+    pacienteNomeInput.value = consulta.paciente?.nome || consulta.nome_paciente || "Paciente";
     consultaDataInput.value = consulta.data_consulta || "";
     consultaHoraInput.value = consulta.hora_consulta || "";
     consultaTipoInput.value = consulta.tipo_atendimento || "PARTICULAR";
@@ -335,8 +391,7 @@ async function salvarConsulta() {
       data_consulta: consultaDataInput.value,
       hora_consulta: consultaHoraInput.value || null,
       tipo_atendimento,
-      status_pagamento:
-        tipo_atendimento === "SUS" ? null : consultaPagamentoInput.value,
+      status_pagamento: tipo_atendimento === "SUS" ? null : consultaPagamentoInput.value,
       observacoes: consultaObservacoesInput.value.trim() || null,
     };
 
@@ -439,10 +494,16 @@ async function excluirConsulta(id) {
   }
 }
 
-consultasTableBody.addEventListener("click", async (event) => {
+function lidarCliqueConsulta(event) {
   const botaoAbrir = event.target.closest("[data-open]");
   const botaoPagamento = event.target.closest("[data-pay]");
   const botaoExcluir = event.target.closest("[data-delete]");
+
+  return { botaoAbrir, botaoPagamento, botaoExcluir };
+}
+
+async function processarAcaoConsulta(event) {
+  const { botaoAbrir, botaoPagamento, botaoExcluir } = lidarCliqueConsulta(event);
 
   if (botaoAbrir) {
     await abrirConsulta(botaoAbrir.dataset.open);
@@ -453,16 +514,17 @@ consultasTableBody.addEventListener("click", async (event) => {
     const consulta = consultas.find((item) => String(item.id) === String(id));
     if (!consulta || consulta.tipo_atendimento === "SUS") return;
 
-    const novoStatus =
-      consulta.status_pagamento === "pago" ? "pendente" : "pago";
-
+    const novoStatus = consulta.status_pagamento === "pago" ? "pendente" : "pago";
     await atualizarPagamentoRapido(id, novoStatus);
   }
 
   if (botaoExcluir) {
     await excluirConsulta(botaoExcluir.dataset.delete);
   }
-});
+}
+
+consultasTableBody.addEventListener("click", processarAcaoConsulta);
+consultasCards.addEventListener("click", processarAcaoConsulta);
 
 consultaForm.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -513,6 +575,51 @@ logoutBtn.addEventListener("click", () => {
   window.location.href = "../index.html";
 });
 
+function abrirMenuMobile() {
+  if (!sidebar || !sidebarOverlay || !menuToggle) return;
+  sidebar.classList.add("sidebar-open");
+  sidebarOverlay.classList.add("show");
+  document.body.classList.add("menu-open");
+  menuToggle.setAttribute("aria-expanded", "true");
+}
+
+function fecharMenuMobile() {
+  if (!sidebar || !sidebarOverlay || !menuToggle) return;
+  sidebar.classList.remove("sidebar-open");
+  sidebarOverlay.classList.remove("show");
+  document.body.classList.remove("menu-open");
+  menuToggle.setAttribute("aria-expanded", "false");
+}
+
+function configurarMenuMobile() {
+  if (!menuToggle || !sidebar || !sidebarOverlay) return;
+
+  menuToggle.addEventListener("click", () => {
+    const aberto = sidebar.classList.contains("sidebar-open");
+    if (aberto) {
+      fecharMenuMobile();
+    } else {
+      abrirMenuMobile();
+    }
+  });
+
+  sidebarOverlay.addEventListener("click", fecharMenuMobile);
+
+  sidebar.querySelectorAll(".nav-item").forEach((item) => {
+    item.addEventListener("click", () => {
+      if (window.innerWidth <= 768) {
+        fecharMenuMobile();
+      }
+    });
+  });
+
+  window.addEventListener("resize", () => {
+    if (window.innerWidth > 768) {
+      fecharMenuMobile();
+    }
+  });
+}
+
 async function validarSessao() {
   try {
     const resposta = await fetch(`${API_URL}/auth/me`, {
@@ -535,6 +642,7 @@ async function init() {
   preencherUsuarioNaTela();
   controlarPermissoes();
   limparFormularioConsulta();
+  configurarMenuMobile();
   await validarSessao();
   await carregarConsultas();
 }

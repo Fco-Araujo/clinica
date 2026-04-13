@@ -30,10 +30,20 @@
   --font: "Segoe UI", Arial, sans-serif;
 }
 
+html,
+body {
+  min-height: 100%;
+  overflow-x: hidden;
+}
+
 body {
   font-family: var(--font);
   background: var(--bg);
   color: var(--text);
+}
+
+body.menu-open {
+  overflow: hidden;
 }
 
 button,
@@ -46,6 +56,10 @@ input {
   display: flex;
 }
 
+.sidebar-overlay {
+  display: none;
+}
+
 .sidebar {
   width: var(--sidebar-width);
   background: linear-gradient(180deg, #173679 0%, #0f2d67 100%);
@@ -56,6 +70,7 @@ input {
   bottom: 0;
   padding: 22px 18px;
   box-shadow: 8px 0 30px rgba(10, 27, 63, 0.08);
+  z-index: 1200;
 }
 
 .sidebar-top {
@@ -119,6 +134,7 @@ input {
   flex: 1;
   margin-left: var(--sidebar-width);
   min-height: 100vh;
+  min-width: 0;
 }
 
 .topbar {
@@ -147,6 +163,21 @@ input {
   justify-content: flex-end;
   gap: 22px;
   padding: 0 34px;
+}
+
+.menu-toggle {
+  display: none;
+  width: 46px;
+  height: 46px;
+  border: none;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-size: 1.15rem;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .topbar-search {
@@ -306,6 +337,7 @@ input {
   display: grid;
   grid-template-columns: minmax(0, 1.6fr) minmax(320px, 0.9fr);
   gap: 20px;
+  align-items: start;
 }
 
 .calendar-card,
@@ -318,6 +350,7 @@ input {
 
 .calendar-card {
   padding: 18px;
+  min-width: 0;
 }
 
 .details-card {
@@ -325,6 +358,9 @@ input {
   height: fit-content;
   position: sticky;
   top: 24px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .weekdays {
@@ -397,6 +433,7 @@ input {
 .day-badge {
   display: inline-flex;
   width: fit-content;
+  max-width: 100%;
   padding: 6px 10px;
   border-radius: 999px;
   font-size: 0.76rem;
@@ -500,6 +537,7 @@ input {
   gap: 12px;
   padding: 0 16px;
   margin-bottom: 16px;
+  flex-shrink: 0;
 }
 
 .details-search i {
@@ -520,8 +558,22 @@ input {
   flex-direction: column;
   gap: 12px;
   max-height: 600px;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
   padding-right: 4px;
+}
+
+.day-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.day-list::-webkit-scrollbar-thumb {
+  background: #d3d8e5;
+  border-radius: 999px;
+}
+
+.day-list::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .day-card {
@@ -543,6 +595,7 @@ input {
   font-weight: 800;
   color: var(--primary);
   font-size: 1rem;
+  word-break: break-word;
 }
 
 .day-card-meta {
@@ -551,6 +604,10 @@ input {
   gap: 6px;
   color: #50648e;
   font-size: 0.92rem;
+}
+
+.day-card-meta span {
+  word-break: break-word;
 }
 
 .day-card-badges {
@@ -675,6 +732,163 @@ input {
     min-height: 105px;
     padding: 10px;
   }
+
+  .day-badge {
+    font-size: 0.68rem;
+    padding: 4px 7px;
+  }
+}
+
+@media (max-width: 768px) {
+  .menu-toggle {
+    display: inline-flex;
+  }
+
+  .sidebar {
+    width: 280px;
+    max-width: 82vw;
+    transform: translateX(-100%);
+    transition: transform 0.28s ease;
+    padding: 22px 16px;
+  }
+
+  .sidebar.sidebar-open {
+    transform: translateX(0);
+  }
+
+  .sidebar-nav .nav-item span {
+    display: inline;
+  }
+
+  .nav-item {
+    justify-content: flex-start;
+    padding: 15px 16px;
+  }
+
+  .main-wrapper {
+    margin-left: 0;
+  }
+
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(8, 19, 45, 0.45);
+    opacity: 0;
+    visibility: hidden;
+    transition: 0.25s ease;
+    z-index: 1100;
+  }
+
+  .sidebar-overlay.show {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .topbar {
+    height: 88px;
+  }
+
+  .topbar-wave {
+    width: 200px;
+  }
+
+  .topbar-content {
+    justify-content: space-between;
+    padding: 0 16px;
+    gap: 12px;
+  }
+
+  .content {
+    padding: 16px;
+  }
+
+  .page-header h1 {
+    font-size: 1.9rem;
+  }
+
+  .page-header p {
+    font-size: 0.98rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .stat-card {
+    padding: 18px;
+    border-radius: 20px;
+  }
+
+  .stat-value {
+    font-size: 1.55rem;
+  }
+
+  .calendar-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .calendar-nav {
+    justify-content: space-between;
+  }
+
+  .calendar-actions .btn-secondary {
+    width: 100%;
+  }
+
+  .calendar-card,
+  .details-card {
+    border-radius: 22px;
+    padding: 18px;
+  }
+
+  .details-card {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .details-summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .weekdays,
+  .calendar-grid {
+    gap: 6px;
+  }
+
+  .weekdays div {
+    font-size: 0.82rem;
+    padding: 8px 2px;
+  }
+
+  .calendar-day {
+    min-height: 88px;
+    border-radius: 14px;
+    padding: 8px;
+  }
+
+  .day-number {
+    font-size: 0.92rem;
+    margin-bottom: 6px;
+  }
+
+  .day-summary {
+    gap: 4px;
+  }
+
+  .day-badge {
+    font-size: 0.62rem;
+    padding: 3px 6px;
+  }
+
+  .day-list {
+    max-height: 320px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 4px;
+  }
 }
 
 @media (max-width: 680px) {
@@ -709,20 +923,121 @@ input {
   }
 
   .calendar-day {
-    min-height: 92px;
+    min-height: 78px;
     border-radius: 14px;
   }
 
   .day-number {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
   }
 
   .day-badge {
-    font-size: 0.7rem;
-    padding: 4px 7px;
+    font-size: 0.58rem;
+    padding: 3px 5px;
   }
 
   .details-summary {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .topbar {
+    height: 80px;
+  }
+
+  .topbar-content {
+    padding: 0 12px;
+  }
+
+  .menu-toggle {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+  }
+
+  .topbar-user {
+    gap: 8px;
+  }
+
+  .avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .content {
+    padding: 14px;
+  }
+
+  .page-header h1 {
+    font-size: 1.55rem;
+  }
+
+  .page-header p {
+    font-size: 0.92rem;
+  }
+
+  .stat-card,
+  .calendar-card,
+  .details-card {
+    padding: 16px;
+  }
+
+  .calendar-title-wrap h2 {
+    font-size: 1.3rem;
+  }
+
+  .calendar-title-wrap span {
+    font-size: 0.88rem;
+  }
+
+  .weekdays div {
+    font-size: 0.72rem;
+    padding: 6px 1px;
+  }
+
+  .calendar-day {
+    min-height: 66px;
+    padding: 6px;
+  }
+
+  .day-number {
+    font-size: 0.82rem;
+  }
+
+  .day-badge {
+    font-size: 0.54rem;
+    padding: 2px 5px;
+  }
+
+  .details-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .day-list {
+    max-height: 280px;
+  }
+
+  .day-card {
+    padding: 12px;
+    border-radius: 16px;
+  }
+
+  .day-card-name {
+    font-size: 0.95rem;
+  }
+
+  .day-card-meta {
+    font-size: 0.88rem;
+  }
+
+  .day-card-status {
+    font-size: 0.76rem;
+    padding: 6px 10px;
+  }
+
+  .btn-secondary {
+    font-size: 0.88rem;
+    padding: 10px 12px;
   }
 }

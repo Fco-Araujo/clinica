@@ -45,6 +45,10 @@ const searchUsuario = document.getElementById("searchUsuario");
 const searchTopbar = document.getElementById("searchTopbar");
 const logoutBtn = document.getElementById("logoutBtn");
 
+const sidebar = document.getElementById("sidebar");
+const sidebarOverlay = document.getElementById("sidebarOverlay");
+const menuToggle = document.getElementById("menuToggle");
+
 let usuarios = [];
 
 function getAuthHeaders() {
@@ -82,7 +86,7 @@ function limparFormulario() {
   nomeNovoUsuarioInput.value = "";
   emailNovoUsuarioInput.value = "";
   usernameNovoUsuarioInput.value = "";
-  perfilNovoUsuarioInput.value = "comum";
+  perfilNovoUsuarioInput.value = "funcionario";
   senhaNovoUsuarioInput.value = "";
   ativoNovoUsuarioInput.value = "true";
   btnSalvarUsuario.textContent = "Cadastrar usuário";
@@ -94,7 +98,7 @@ function preencherFormulario(usuario) {
   nomeNovoUsuarioInput.value = usuario.nome || "";
   emailNovoUsuarioInput.value = usuario.email || "";
   usernameNovoUsuarioInput.value = usuario.username || "";
-  perfilNovoUsuarioInput.value = usuario.perfil || "comum";
+  perfilNovoUsuarioInput.value = usuario.perfil || "funcionario";
   senhaNovoUsuarioInput.value = "";
   ativoNovoUsuarioInput.value = String(usuario.ativo);
   btnSalvarUsuario.textContent = "Salvar alterações";
@@ -303,6 +307,51 @@ logoutBtn.addEventListener("click", () => {
   window.location.href = "../index.html";
 });
 
+function abrirMenuMobile() {
+  if (!sidebar || !sidebarOverlay || !menuToggle) return;
+  sidebar.classList.add("sidebar-open");
+  sidebarOverlay.classList.add("show");
+  document.body.classList.add("menu-open");
+  menuToggle.setAttribute("aria-expanded", "true");
+}
+
+function fecharMenuMobile() {
+  if (!sidebar || !sidebarOverlay || !menuToggle) return;
+  sidebar.classList.remove("sidebar-open");
+  sidebarOverlay.classList.remove("show");
+  document.body.classList.remove("menu-open");
+  menuToggle.setAttribute("aria-expanded", "false");
+}
+
+function configurarMenuMobile() {
+  if (!menuToggle || !sidebar || !sidebarOverlay) return;
+
+  menuToggle.addEventListener("click", () => {
+    const aberto = sidebar.classList.contains("sidebar-open");
+    if (aberto) {
+      fecharMenuMobile();
+    } else {
+      abrirMenuMobile();
+    }
+  });
+
+  sidebarOverlay.addEventListener("click", fecharMenuMobile);
+
+  sidebar.querySelectorAll(".nav-item").forEach((item) => {
+    item.addEventListener("click", () => {
+      if (window.innerWidth <= 768) {
+        fecharMenuMobile();
+      }
+    });
+  });
+
+  window.addEventListener("resize", () => {
+    if (window.innerWidth > 768) {
+      fecharMenuMobile();
+    }
+  });
+}
+
 async function validarSessao() {
   try {
     const resposta = await fetch(`${API_URL}/auth/me`, {
@@ -331,6 +380,7 @@ async function validarSessao() {
 async function init() {
   preencherUsuarioNaTela();
   limparFormulario();
+  configurarMenuMobile();
   await validarSessao();
   await carregarUsuarios();
 }

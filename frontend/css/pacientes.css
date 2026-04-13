@@ -25,21 +25,36 @@
   --font: "Segoe UI", Arial, sans-serif;
 }
 
+html,
+body {
+  min-height: 100%;
+  overflow-x: hidden;
+}
+
 body {
   font-family: var(--font);
   background: var(--bg);
   color: var(--text);
 }
 
+body.menu-open {
+  overflow: hidden;
+}
+
 button,
 input,
-textarea {
+textarea,
+select {
   font-family: inherit;
 }
 
 .app-layout {
   min-height: 100vh;
   display: flex;
+}
+
+.sidebar-overlay {
+  display: none;
 }
 
 .sidebar {
@@ -52,6 +67,7 @@ textarea {
   bottom: 0;
   padding: 22px 18px;
   box-shadow: 8px 0 30px rgba(10, 27, 63, 0.08);
+  z-index: 1200;
 }
 
 .sidebar-top {
@@ -115,6 +131,7 @@ textarea {
   flex: 1;
   margin-left: var(--sidebar-width);
   min-height: 100vh;
+  min-width: 0;
 }
 
 .topbar {
@@ -144,6 +161,21 @@ textarea {
   justify-content: flex-end;
   gap: 22px;
   padding: 0 34px;
+}
+
+.menu-toggle {
+  display: none;
+  width: 46px;
+  height: 46px;
+  border: none;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-size: 1.15rem;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .topbar-search {
@@ -227,6 +259,7 @@ textarea {
   display: grid;
   grid-template-columns: minmax(0, 1.8fr) minmax(320px, 0.9fr);
   gap: 20px;
+  align-items: start;
 }
 
 .form-card,
@@ -276,7 +309,9 @@ textarea {
 }
 
 .form-group input,
-.form-group textarea {
+.form-group textarea,
+.appointment-create-grid select,
+.appointment-create-grid input {
   width: 100%;
   border: 1px solid var(--border);
   background: #f8f9fc;
@@ -289,25 +324,52 @@ textarea {
 }
 
 .form-group input:focus,
-.form-group textarea:focus {
+.form-group textarea:focus,
+.appointment-create-grid select:focus,
+.appointment-create-grid input:focus {
   border-color: #b9c6de;
   box-shadow: 0 0 0 4px rgba(20, 47, 106, 0.05);
 }
 
-.input-icon-wrap {
-  position: relative;
+.form-group textarea {
+  resize: vertical;
+  min-height: 110px;
 }
 
-.input-icon-wrap i {
+/* Correção dos ícones dos campos Nome e Telefone */
+.form-group .input-icon-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.form-group .input-icon-wrap i {
   position: absolute;
-  left: 16px;
+  left: 14px;
   top: 50%;
   transform: translateY(-50%);
   color: #7f8caf;
+  font-size: 0.95rem;
+  line-height: 1;
+  pointer-events: none;
+  z-index: 3;
 }
 
-.input-icon-wrap input {
-  padding-left: 46px;
+.form-group .input-icon-wrap input {
+  width: 100%;
+  height: 52px;
+  padding-left: 42px !important;
+}
+
+@media (max-width: 768px) {
+  .form-group .input-icon-wrap input {
+    height: 48px;
+    padding-left: 40px !important;
+  }
+
+  .form-group .input-icon-wrap i {
+    left: 12px;
+    font-size: 0.9rem;
+  }
 }
 
 .appointments-box {
@@ -328,25 +390,6 @@ textarea {
 .appointments-header h3 {
   font-size: 1.2rem;
   color: var(--primary);
-}
-
-.appointments-filter {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.appointments-filter label {
-  font-weight: 700;
-  color: #687ba2;
-}
-
-.appointments-filter input {
-  border: 1px solid var(--border);
-  background: #f3f5fa;
-  border-radius: 10px;
-  padding: 10px 12px;
-  color: var(--text);
 }
 
 .appointments-list {
@@ -382,6 +425,7 @@ textarea {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .status-pill {
@@ -391,6 +435,14 @@ textarea {
   color: #fff;
   font-size: 0.92rem;
   font-weight: 700;
+}
+
+.status-pill.pago {
+  background: #36b8a9;
+}
+
+.status-pill.pendente {
+  background: #f59e0b;
 }
 
 .btn-mini-remove {
@@ -405,6 +457,10 @@ textarea {
 
 .appointments-actions {
   padding: 0 16px 16px;
+}
+
+.appointments-actions-top {
+  padding-top: 0;
 }
 
 .btn-secondary {
@@ -462,6 +518,8 @@ textarea {
   display: flex;
   flex-direction: column;
   min-height: 620px;
+  max-height: calc(100dvh - 190px);
+  overflow: hidden;
 }
 
 .list-search {
@@ -474,6 +532,7 @@ textarea {
   gap: 12px;
   padding: 0 16px;
   margin-bottom: 16px;
+  flex-shrink: 0;
 }
 
 .list-search i {
@@ -494,13 +553,15 @@ textarea {
   flex-direction: column;
   gap: 12px;
   flex: 1;
-  overflow: auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
   padding-right: 4px;
 }
 
 .patient-card {
-  border-bottom: 1px solid #edf0f5;
-  padding: 12px 2px 14px;
+  border-bottom: 1px solid #dfe5f0;
+  padding: 14px 2px 18px;
 }
 
 .patient-card:last-child {
@@ -528,22 +589,28 @@ textarea {
   cursor: pointer;
 }
 
-.patient-meta-row {
+.patient-info-list {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
 }
 
-.patient-meta {
-  font-size: 0.98rem;
+.patient-info-line {
+  font-size: 0.96rem;
   color: #445b8a;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.patient-info-line strong {
+  color: var(--primary);
 }
 
 .patient-actions {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .btn-table {
@@ -571,6 +638,8 @@ textarea {
   text-align: center;
   color: #7a86a3;
   font-size: 0.92rem;
+  flex-shrink: 0;
+  margin-top: 12px;
 }
 
 .empty-state {
@@ -579,13 +648,21 @@ textarea {
   padding: 24px 10px;
 }
 
+.appointment-create-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  padding: 0 16px 16px;
+}
+
 @media (max-width: 1200px) {
   .page-grid {
     grid-template-columns: 1fr;
   }
 
   .list-card {
-    min-height: auto;
+    min-height: 420px;
+    max-height: 520px;
   }
 }
 
@@ -627,6 +704,10 @@ textarea {
   .user-info {
     display: none;
   }
+
+  .appointment-create-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 680px) {
@@ -659,67 +740,213 @@ textarea {
   .topbar-search {
     display: none;
   }
-}
 
-.appointment-create-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 16px;
-  padding: 0 16px 16px;
-}
-
-.appointment-create-grid select,
-.appointment-create-grid input {
-  width: 100%;
-  border: 1px solid var(--border);
-  background: #f8f9fc;
-  outline: none;
-  border-radius: 14px;
-  padding: 16px 18px;
-  font-size: 1rem;
-  color: var(--text);
-}
-
-.appointments-actions-top {
-  padding-top: 0;
-}
-
-.status-pill.pago {
-  background: #36b8a9;
-}
-
-.status-pill.pendente {
-  background: #f59e0b;
-}
-
-@media (max-width: 900px) {
-  .appointment-create-grid {
-    grid-template-columns: 1fr;
+  .list-card {
+    min-height: 380px;
+    max-height: 460px;
   }
 }
 
-.patient-card {
-  border-bottom: 1px solid #dfe5f0;
-  padding: 14px 2px 18px;
+@media (max-width: 768px) {
+  .menu-toggle {
+    display: inline-flex;
+  }
+
+  .sidebar {
+    width: 280px;
+    max-width: 82vw;
+    transform: translateX(-100%);
+    transition: transform 0.28s ease;
+    padding: 22px 16px;
+  }
+
+  .sidebar.sidebar-open {
+    transform: translateX(0);
+  }
+
+  .sidebar-nav .nav-item span {
+    display: inline;
+  }
+
+  .nav-item {
+    justify-content: flex-start;
+    padding: 15px 16px;
+  }
+
+  .main-wrapper {
+    margin-left: 0;
+  }
+
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(8, 19, 45, 0.45);
+    opacity: 0;
+    visibility: hidden;
+    transition: 0.25s ease;
+    z-index: 1100;
+  }
+
+  .sidebar-overlay.show {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .topbar {
+    height: 88px;
+  }
+
+  .topbar-wave {
+    width: 200px;
+  }
+
+  .topbar-content {
+    justify-content: space-between;
+    padding: 0 16px;
+    gap: 12px;
+  }
+
+  .content {
+    padding: 16px;
+  }
+
+  .page-header {
+    margin-bottom: 18px;
+  }
+
+  .page-header h1 {
+    font-size: 1.9rem;
+  }
+
+  .page-header p {
+    font-size: 0.98rem;
+  }
+
+  .form-card,
+  .list-card {
+    border-radius: 22px;
+  }
+
+  .form-card {
+    padding: 18px;
+  }
+
+  .form-section-header {
+    margin-bottom: 18px;
+  }
+
+  .form-section-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .form-group input,
+  .form-group textarea,
+  .appointment-create-grid select,
+  .appointment-create-grid input {
+    padding: 14px 14px;
+    font-size: 0.96rem;
+  }
+
+  .btn-secondary {
+    width: 100%;
+  }
+
+  .list-card {
+    min-height: 360px;
+    max-height: 420px;
+    padding: 16px;
+  }
+
+  .patient-name-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .patient-action-link {
+    font-size: 0.95rem;
+  }
+
+  .appointment-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .appointment-right {
+    width: 100%;
+    justify-content: flex-start;
+  }
 }
 
-.patient-card:last-child {
-  border-bottom: none;
-}
+@media (max-width: 480px) {
+  .topbar {
+    height: 80px;
+  }
 
-.patient-info-list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 14px;
-}
+  .topbar-content {
+    padding: 0 12px;
+  }
 
-.patient-info-line {
-  font-size: 0.96rem;
-  color: #445b8a;
-  line-height: 1.4;
-}
+  .menu-toggle {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+  }
 
-.patient-info-line strong {
-  color: var(--primary);
+  .topbar-user {
+    gap: 8px;
+  }
+
+  .avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .content {
+    padding: 14px;
+  }
+
+  .page-header h1 {
+    font-size: 1.55rem;
+  }
+
+  .page-header p {
+    font-size: 0.92rem;
+  }
+
+  .form-card {
+    padding: 16px;
+  }
+
+  .form-section-header h2 {
+    font-size: 1.3rem;
+  }
+
+  .list-card {
+    min-height: 340px;
+    max-height: 400px;
+    padding: 14px;
+  }
+
+  .list-search {
+    height: 48px;
+    margin-bottom: 14px;
+  }
+
+  .patient-name {
+    font-size: 1rem;
+  }
+
+  .patient-info-line {
+    font-size: 0.9rem;
+  }
+
+  .btn-table {
+    padding: 8px 10px;
+    font-size: 0.85rem;
+  }
+
+  .pagination {
+    font-size: 0.88rem;
+  }
 }
